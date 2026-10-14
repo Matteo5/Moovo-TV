@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond de l'application (fenêtre, démarrage) -->
+    <color name="ic_launcher_background">#030919</color>
+    <!-- Fond bleu nuit du logo Moovo TV (icône adaptative) -->
+    <color name="ic_launcher_brand_background">#050F2C</color>
+</resources>

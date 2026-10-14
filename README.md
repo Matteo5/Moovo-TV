@@ -1,0 +1,176 @@
+# Moovo TV
+
+Lecteur IPTV et VOD qui tourne dans le navigateur et s'installe comme une application (PWA), pensé pour trois écrans : **téléviseur Android TV** (télécommande), **ordinateur** (souris, clavier) et **téléphone** (tactile).
+
+Sources prises en charge : playlist **M3U** (lien ou fichier), **Xtream Codes**, portail **MAG / Stalker**, décodeur **Enigma2**. Les accès restent sur l'appareil (localStorage / IndexedDB).
+
+> **Aucun abonnement n'est fourni.** Chacun utilise son propre accès IPTV (Xtream, M3U…). Vos identifiants ne quittent jamais votre PC : ils sont enregistrés dans le navigateur, rien n'est envoyé à un serveur tiers.
+
+---
+
+## 🚀 Tester sur son PC (pour les amis)
+
+### 1. Installer les deux outils nécessaires (une seule fois)
+
+| Outil | Où le trouver | Vérifier qu'il est installé |
+|---|---|---|
+| **Node.js** 22.12 ou plus récent (prendre la version **LTS**) | https://nodejs.org | `node -v` |
+| **Git** | https://git-scm.com/downloads | `git --version` |
+
+Sous Windows, gardez les options par défaut de l'installateur. **Fermez puis rouvrez le terminal** après l'installation pour que les commandes soient reconnues.
+
+### 2. Récupérer le projet et le lancer
+
+Ouvrez un terminal (Windows : touche Windows, tapez `PowerShell` ; Mac : `Terminal`) puis :
+
+```bash
+git clone https://github.com/Matteo5/Moovo-TV.git
+cd Moovo-TV
+npm run dev
+```
+
+Au premier lancement, les dépendances s'installent toutes seules (1 à 2 minutes). Quand le terminal affiche `Local: http://localhost:5173/`, ouvrez **http://localhost:5173** dans Chrome, Edge ou Firefox.
+
+> Laissez le terminal ouvert tant que vous utilisez l'application. Pour l'arrêter : `Ctrl + C` dans le terminal.
+
+### 3. Se connecter à son abonnement
+
+Sur l'écran d'accueil, choisissez votre type d'accès et entrez **vos** informations :
+
+- **Xtream Codes** : adresse du serveur (ex. `http://serveur.exemple.com:8080`), nom d'utilisateur, mot de passe ;
+- **Playlist M3U** : lien ou fichier `.m3u` ;
+- **Portail MAG / Stalker** : adresse du portail + adresse MAC ;
+- **Enigma2** : adresse IP du décodeur.
+
+Pas d'abonnement ? Des playlists gratuites et légales (iptv-org) sont proposées pour essayer.
+
+### Mettre à jour vers la dernière version
+
+Dans le dossier `Moovo-TV` :
+
+```bash
+git pull
+npm install
+npm run dev
+```
+
+### Bonus : tester depuis la TV ou le téléphone
+
+Le terminal affiche aussi une ligne `Network: http://192.168.x.x:5173/`. Tout appareil connecté **au même Wi-Fi** peut ouvrir cette adresse. Si ça ne répond pas, autorisez Node.js dans le pare-feu Windows (fenêtre qui s'affiche au premier lancement › « Réseaux privés »).
+
+### En cas de problème
+
+| Symptôme | Solution |
+|---|---|
+| `node` / `npm` / `git` n'est pas reconnu | L'outil n'est pas installé, ou le terminal n'a pas été rouvert après l'installation. |
+| « Moovo TV a besoin de Node.js 22.12 ou plus récent » | Installez la version LTS depuis https://nodejs.org. |
+| `Port 5173 is in use` | L'application tourne déjà dans un autre terminal ; Vite propose alors 5174, utilisez l'adresse affichée. |
+| PowerShell : « l'exécution de scripts est désactivée » | Lancez une fois `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, ou utilisez l'Invite de commandes (`cmd`). |
+| L'installation échoue au milieu | Supprimez le dossier `node_modules` puis relancez `npm install`. |
+| Les chaînes ne se lancent pas | Vérifiez vos identifiants et que votre abonnement est actif (Réglages › état de l'abonnement). |
+
+---
+
+## Commandes pour développer
+
+```bash
+npm run dev          # http://localhost:5173 (proxy CORS intégré, installe les dépendances si besoin)
+npm run build        # vérification TypeScript + build de production dans dist/
+npm run lint         # oxlint
+```
+
+## Mettre en production
+
+```bash
+npm run build
+npm start            # sert dist/ + le proxy sur http://localhost:8080 (PORT et HOST configurables)
+```
+
+Le serveur de production (`server/index.ts`) est un simple serveur Node sans dépendance. Il sert l'application et le proxy `/api/proxy`, indispensable car les serveurs IPTV n'envoient pas d'en-têtes CORS.
+
+> ⚠️ Le proxy relaie n'importe quelle URL http(s). Gardez-le sur votre réseau local ou placez-le derrière une authentification avant de l'exposer sur Internet.
+
+Un hébergement purement statique (Netlify, GitHub Pages…) ne suffit pas : sans le proxy, la plupart des fournisseurs IPTV restent injoignables.
+
+## Application Android / Android TV (APK)
+
+L'interface web est embarquée dans une application native avec [Capacitor](https://capacitorjs.com). Il n'y a pas de serveur à héberger : le proxy `/api/proxy` est réimplémenté en Java dans l'application (`android/app/src/main/java/tv/moovo/app/NativeProxy.java`), avec flux continu, Range, réécriture HLS et user-agents IPTV.
+
+```bash
+npm run android:apk      # build web + synchro + APK de débogage
+```
+
+L'APK est généré dans `android/app/build/outputs/apk/debug/app-debug.apk`. Il faut un JDK 21 (`JAVA_HOME`) et le SDK Android (`ANDROID_HOME`, plateforme 36). `npm run android:open` ouvre le projet dans Android Studio.
+
+**Installer sur Android TV / Google TV / Fire TV**
+1. Sur la TV : Paramètres › Système › À propos › cliquer 7 fois sur « Build Android TV » pour activer les options développeur, puis autoriser l'installation d'applications inconnues.
+2. Copier l'APK sur une clé USB et l'ouvrir avec un gestionnaire de fichiers, ou l'envoyer avec l'application « Downloader » / « Send Files to TV ».
+3. Ou en ligne de commande : `adb connect <ip-de-la-tv>` puis `adb install -r app-debug.apk`.
+
+Spécificités natives : apparition dans le lanceur TV (bannière), mode téléviseur détecté par le système, bouton Retour de la télécommande (calques → accueil → double appui pour quitter), écran maintenu allumé, plein écran sans barres système sur TV.
+
+Limite connue : la WebView Android ne transmet pas le corps des requêtes POST interceptées ; l'envoi de la synchronisation réseau local n'est donc disponible que depuis le navigateur (la récupération au démarrage fonctionne).
+
+**iOS (plus tard)** : `npx cap add ios` sur un Mac avec Xcode. Le proxy natif devra être réécrit en Swift (`WKURLSchemeHandler`), car iOS ne permet pas d'intercepter les requêtes http de la WebView comme Android.
+
+## Ce que fait l'application
+
+| Domaine | Détail |
+|---|---|
+| **Direct** | Liste façon décodeur avec numéros de chaîne, catégories, fiche de la chaîne (programme en cours + suivants), saisie du numéro au pavé (0-9), favoris |
+| **Lecteur** | Choix automatique de la méthode : HLS → MPEG-TS transmuxé → natif, en direct puis via le proxy. Zapping ↑/↓, tiroir de chaînes, qualités 4K/FHD/HD/SD, bascule sur une chaîne miroir si le flux tombe, multiview 2×2, incrustation (PiP), Cast / AirPlay, commandes sur l'écran verrouillé (Media Session), écran maintenu allumé |
+| **Guide TV** | Grille XMLTV virtualisée (heure × chaîne), ligne du direct, 6 jours, replay Xtream sur les émissions passées, guide du fournisseur Xtream en un clic |
+| **Films et séries** | Catalogue complet (sans limite), genres, tri, recherche, fiche avec synopsis et casting du panel Xtream (+ TMDB si une clé est saisie), saisons et épisodes, reprise de lecture |
+| **Recherche** | Chaînes, émissions en cours, films et séries, insensible aux accents |
+| **Réglages** | État de l'abonnement Xtream (expiration, connexions), guide, couleur d'accent, mode d'affichage forcé (TV / ordinateur / mobile), clé TMDB, export / import JSON, synchronisation réseau local |
+| **PWA** | Service worker (coquille hors ligne, cache des affiches), icônes Android (dont maskable) |
+
+## Télécommande et clavier
+
+| Touche | Action |
+|---|---|
+| Flèches | Navigation entre les éléments (focus ambre) |
+| 0 – 9 | Aller à une chaîne par son numéro |
+| Haut / Bas (lecteur) | Chaîne suivante / précédente |
+| Gauche (lecteur) | Tiroir des chaînes · films : −10 s |
+| OK / Entrée | Afficher les commandes |
+| Retour / Échap | Fermer le lecteur, la fiche ou le tiroir |
+| Espace · M · F | Pause · Son · Plein écran |
+
+Le mode TV est détecté automatiquement (Android TV, Fire TV, Tizen, webOS…). On peut aussi le forcer dans les réglages ou avec `?device=tv`.
+
+## Architecture
+
+```text
+server/
+  proxy.ts            Proxy CORS en streaming (Range, POST, réécriture des playlists HLS)
+  index.ts            Serveur de production (dist/ + proxy)
+src/
+  app/                Coque : rail latéral, onglets mobiles, navigation
+  views/              Accueil, Direct, Guide, Films/Séries, Fiche, Favoris, Recherche, Réglages, Connexion
+  player/             Moteur de lecture, écran du lecteur, tiroir de chaînes, multiview
+  components/         Tuiles, affiches, rangées, liste virtualisée
+  ui/                 Design system : marque, boutons, logos, programme, garde-fou d'erreur
+  hooks/              Navigation spatiale, bouton Retour, saisie de numéro, mode d'appareil
+  services/           M3U, Xtream, Stalker, Enigma2, XMLTV, TMDB, transmuxer TS, sauvegarde
+  store/              État global (Zustand)
+```
+
+## Design
+
+Univers « régie de télévision » : fond encre bleutée, texte papier chaud, logo Moovo TV (symbole « M » lecture, voir `brand/`) au démarrage, dans le menu et pendant les chargements, mire de barres SMPTE en rappel, numéros de chaîne en chasse fixe façon affichage écran. Typographies auto-hébergées : **Archivo** élargie (titres), **Atkinson Hyperlegible Next** (texte, conçue pour la lisibilité à distance), **Atkinson Hyperlegible Mono** (numéros, horaires). Quatre couleurs d'accent : ambre, cyan, phosphore, magenta.
+
+## Application Windows (.exe à partager)
+
+```bash
+npm run desktop:exe      # crée release/desktop/Moovo-TV-<version>-portable.exe (~100 Mo)
+npm run desktop          # lance l'application Windows sans créer l'exe
+```
+
+Un seul fichier `.exe` portable, sans installation : l'interface et le proxy tournent sur le PC de la personne
+(port local 47811), rien ne passe par un serveur tiers. Chacun entre son propre abonnement IPTV.
+Comme l'exe n'est pas signé, Windows SmartScreen affiche « Windows a protégé votre ordinateur » au premier
+lancement : **Informations complémentaires › Exécuter quand même**. F11 : plein écran.
+
+Si la construction échoue avec `EPERM ... rename win-unpacked` (antivirus sur le Bureau), sortir ailleurs :
+`npx electron-builder --win --config.directories.output=%TEMP%\moovo-desktop`.

@@ -1,0 +1,364 @@
+@import "tailwindcss";
+@import "@fontsource-variable/montserrat/wght.css";
+@import "@fontsource-variable/atkinson-hyperlegible-next/index.css";
+@import "@fontsource/atkinson-hyperlegible-mono/500.css";
+@import "@fontsource/atkinson-hyperlegible-mono/700.css";
+
+/* ─────────────────────────────────────────────────────────────
+   Moovo TV — système visuel tiré du logo
+   Nuit bleue du logo en fond, texte blanc froid, et la traînée du « M »
+   (cyan → violet → magenta → orange → jaune) comme seule signature colorée :
+   focus des affiches, barres de progression, rangs du Top.
+   Titres en Montserrat (la géométrie du mot « Moovo »), texte en
+   Atkinson Hyperlegible Next pour la lecture à 3 m, numéros en chasse fixe.
+   ───────────────────────────────────────────────────────────── */
+
+/* Variante tv: … active uniquement en mode téléviseur (html[data-device="tv"]) */
+@custom-variant tv (&:where([data-device="tv"] *));
+
+@theme {
+  --font-display: "Montserrat Variable", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  /* Nuit du logo (#050F2C) déclinée en profondeurs */
+  --color-ink-950: #030919;
+  --color-ink-900: #071130;
+  --color-ink-850: #0b173c;
+  --color-ink-800: #111f4a;
+  --color-ink-700: #1c2d5e;
+  --color-ink-600: #2c4076;
+
+  --color-paper: #f3f5ff;
+  --color-mist: #aab5d8;
+  --color-fog: #7482ad;
+
+  /* Couleurs du logo */
+  --color-brand-cyan: #1ec8ff;
+  --color-brand-violet: #9b6bff;
+  --color-brand-magenta: #ff3ea5;
+  --color-brand-orange: #ff8a1f;
+  --color-brand-yellow: #ffd23f;
+
+  /* État « en direct » : rouge tiré vers le magenta du logo */
+  --color-onair: #ff3d6e;
+
+  --ease-snap: cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+@theme inline {
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+}
+
+:root {
+  /* La traînée du « M », de la queue (cyan) à la pointe (jaune) */
+  --brand-gradient: linear-gradient(100deg, #1ec8ff 0%, #9b6bff 34%, #ff3ea5 58%, #ff8a1f 82%, #ffd23f 100%);
+  --accent: #1ec8ff;
+  --accent-ink: #001726;
+  --accent-soft: rgb(30 200 255 / 0.16);
+  --rail-w: 5.25rem;
+  --gutter: 1rem;
+  color-scheme: dark;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2.25rem;
+  }
+}
+/* TV : marges de sécurité contre le débordement d'image (overscan) */
+:root[data-device="tv"] {
+  --gutter: 3rem;
+  --rail-w: 6.25rem;
+}
+html[data-device="tv"] .rail {
+  padding-left: 1.25rem;
+  padding-right: 0.75rem;
+}
+:root[data-accent="magenta"] {
+  --accent: #ff3ea5;
+  --accent-ink: #26000f;
+  --accent-soft: rgb(255 62 165 / 0.16);
+}
+:root[data-accent="orange"] {
+  --accent: #ff8a1f;
+  --accent-ink: #261100;
+  --accent-soft: rgb(255 138 31 / 0.16);
+}
+:root[data-accent="yellow"] {
+  --accent: #ffd23f;
+  --accent-ink: #261d00;
+  --accent-soft: rgb(255 210 63 / 0.16);
+}
+
+/* Échelle typographique pilotée par l'appareil :
+   tout est en rem, le mode TV grossit l'ensemble pour la lecture à 3 mètres. */
+html {
+  font-size: 16px;
+}
+html[data-device="desktop"] {
+  font-size: clamp(15px, 0.35vw + 10px, 18px);
+}
+/* Les navigateurs Android TV exposent ~960 px de large : 15-16 px y restent lisibles à 3 m */
+html[data-device="tv"] {
+  font-size: max(15px, 1.6vw);
+}
+
+/* Le flou d'arrière-plan coûte cher aux processeurs graphiques des boîtiers TV, surtout pendant la vidéo */
+html[data-device="tv"] *,
+html[data-device="tv"] *::before {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer base {
+  /* Focus : cyan du logo, visible au clavier, à la télécommande et à la manette. */
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: inherit;
+  }
+  html[data-device="tv"] :focus-visible {
+    outline-width: 4px;
+    outline-offset: 4px;
+    box-shadow: 0 0 0 10px var(--accent-soft);
+  }
+}
+
+@layer components {
+  /* Affiches et vignettes : au focus, la traînée du « M » les entoure (signature Moovo TV).
+     Anneau peint par un pseudo-élément masqué : aucun flou, rien à recalculer pendant le défilement. */
+  .tile {
+    position: relative;
+    scroll-margin: 2.5rem 4rem;
+    transition:
+      transform 180ms var(--ease-snap),
+      box-shadow 180ms var(--ease-snap),
+      background-color 180ms ease;
+  }
+  /* L'anneau entoure le cadre de l'image (.tile-frame), pas la légende ; une tuile sans image est son propre cadre */
+  .tile-frame {
+    position: relative;
+  }
+  .tile-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 3px;
+    background: var(--brand-gradient);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
+  html[data-device="tv"] .tile-frame::after {
+    padding: 4px;
+  }
+  .tile:focus-visible {
+    outline: none;
+    box-shadow: 0 1.25rem 3rem -1rem rgb(0 0 0 / 0.85);
+    transform: scale(1.045);
+    z-index: 5;
+  }
+  .tile:focus-visible .tile-frame::after,
+  .tile.tile-frame:focus-visible::after {
+    opacity: 1;
+  }
+  /* Lignes pleine largeur (épisodes, résultats) : l'anneau suffit, pas de grossissement qui déborderait */
+  .tile.tile-flat:focus-visible {
+    transform: none;
+  }
+  @media (hover: hover) {
+    html:not([data-device="tv"]) .tile:hover {
+      transform: translateY(-3px);
+    }
+    html:not([data-device="tv"]) .tile:hover .tile-frame::after,
+    html:not([data-device="tv"]) .tile.tile-frame:hover::after {
+      opacity: 0.7;
+    }
+  }
+
+  /* Bouton principal : la traînée du logo en fond, texte nuit pour le contraste */
+  .btn-brand {
+    background: var(--brand-gradient);
+    color: #030919;
+  }
+  .btn-brand:hover {
+    filter: brightness(1.08) saturate(1.05);
+  }
+}
+
+/* Titres : Montserrat, la géométrie du mot « Moovo » */
+@utility font-wide {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+@utility font-xwide {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* La traînée du « M » : barres de progression, liserés, rangs */
+@utility streak {
+  background-image: var(--brand-gradient);
+}
+
+/* Barres de défilement fines, teintées nuit (desktop) */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-600) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-700);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-600);
+  }
+  input,
+  textarea {
+    caret-color: var(--accent);
+  }
+}
+
+/* Symbole Moovo TV en attente : il « respire » comme un signal qui arrive */
+@keyframes brand-pulse {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-brand-pulse {
+  animation: brand-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes onair-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.25;
+  }
+}
+.animate-onair {
+  animation: onair-blink 2.4s steps(1, end) infinite;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-slide-in {
+  animation: slide-in 280ms var(--ease-snap) both;
+}
+
+/* Rail latéral : déployé au survol d'une vraie souris ou quand le focus clavier / télécommande y est.
+   Jamais par un appui tactile (le survol « collant » des écrans tactiles le bloquait ouvert). */
+.rail.rail-open {
+  width: 16rem;
+  box-shadow: 2rem 0 4rem rgb(0 0 0 / 0.6);
+}
+.rail.rail-open .rail-label {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rail:hover {
+    width: 16rem;
+    box-shadow: 2rem 0 4rem rgb(0 0 0 / 0.6);
+  }
+  .rail:hover .rail-label {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: rise 420ms var(--ease-snap) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
