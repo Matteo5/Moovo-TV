@@ -8,7 +8,7 @@ Sources prises en charge : playlist **M3U** (lien ou fichier), **Xtream Codes**,
 
 ---
 
-## 🚀 Tester sur son PC (pour les amis)
+## 🚀 Tester sur son PC 
 
 ### 1. Installer les deux outils nécessaires (une seule fois)
 
