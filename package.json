@@ -17,6 +17,8 @@
     "android:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1",
     "android:open": "npx cap open android",
     "android:apk:release": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1 -Release",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios",
     "desktop:main": "esbuild electron/main.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/main.cjs",
     "desktop": "npm run build && npm run desktop:main && electron .",
     "desktop:exe": "npm run build && npm run desktop:main && electron-builder --win"
@@ -40,6 +42,7 @@
   "devDependencies": {
     "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

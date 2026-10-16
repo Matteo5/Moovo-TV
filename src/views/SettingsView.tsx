@@ -9,7 +9,7 @@ import { PlaybackSettings } from './PlaybackSettings'
 import { CategorySettings } from './CategorySettings'
 import { ParentalSettings } from './ParentalSettings'
 import { clearTrendingCache } from '../services/trendingService'
-import { isNativeApp } from '../native'
+import { nativePlatform } from '../native'
 
 const SOURCE_LABELS = {
   m3u: 'Playlist M3U',
@@ -272,8 +272,8 @@ const SettingsView: React.FC = () => {
             <Button type="submit">{syncInput.trim() ? 'Activer la synchro' : 'Désactiver'}</Button>
           </form>
           <p className="mt-3 text-sm text-fog">
-            {isNativeApp
-              ? 'Dans l’application, la synchro récupère l’état du serveur au démarrage ; l’envoi des modifications n’est disponible que depuis le navigateur.'
+            {nativePlatform === 'android'
+              ? 'Dans l’application Android, la synchro récupère l’état du serveur au démarrage ; l’envoi des modifications n’est disponible que depuis le navigateur.'
               : 'Le serveur doit exposer GET et POST sur /api/sync.'}
           </p>
         </Section>

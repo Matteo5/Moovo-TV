@@ -28,7 +28,7 @@ import { localSyncService } from '../services/localSyncService'
 import { cleanMediaTitle } from '../services/tmdbService'
 import { fileStore } from '../services/fileStore'
 import { getPlaybackPrefs } from '../services/playbackPrefs'
-import { isNativeApp, openInExternalPlayer } from '../native'
+import { hasExternalPlayers, openInExternalPlayer } from '../native'
 
 const LOCAL_FILE_PREFIX = 'file:'
 const RESUME_KEY = 'iptv_vod_resume_points'
@@ -783,7 +783,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
 
       // Lecteur externe choisi dans les réglages (application Android)
       const external = getPlaybackPrefs().externalPlayer
-      if (isNativeApp && external !== 'internal' && !options.forceInternal) {
+      if (hasExternalPlayers && external !== 'internal' && !options.forceInternal) {
         const title = episode ? `${item.cleanTitle} · S${episode.season} É${episode.episodeNum}` : item.cleanTitle
         void openInExternalPlayer(streamUrl, external, title).then((opened) => {
           if (!opened) get().playVod(item, { ...options, forceInternal: true })

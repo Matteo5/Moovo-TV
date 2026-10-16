@@ -47,13 +47,17 @@ export function playTsWithMux(
     }
   }
 
-  // Vérifier le support de MediaSource
-  if (!('MediaSource' in window)) {
+  // MSE classique, ou ManagedMediaSource (iPhone, iOS 17.1+, seule variante disponible)
+  const MediaSourceCtor: typeof MediaSource | undefined =
+    window.MediaSource ?? (window as unknown as { ManagedMediaSource?: typeof MediaSource }).ManagedMediaSource
+  if (!MediaSourceCtor) {
     callbacks.onError?.(new Error('MediaSource n\'est pas supporté par ce navigateur.'))
     return { destroy: cleanup }
   }
 
-  mediaSource = new MediaSource()
+  mediaSource = new MediaSourceCtor()
+  // ManagedMediaSource n'accepte d'être attaché que si AirPlay est désactivé sur l'élément
+  if (MediaSourceCtor !== window.MediaSource) videoElement.disableRemotePlayback = true
   const objectUrl = URL.createObjectURL(mediaSource)
   videoElement.src = objectUrl
 
@@ -97,7 +101,7 @@ export function playTsWithMux(
         if (!sourceBuffer) {
           try {
             const mimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
-            if (MediaSource.isTypeSupported(mimeType)) {
+            if (MediaSourceCtor.isTypeSupported(mimeType)) {
               sourceBuffer = mediaSource.addSourceBuffer(mimeType)
             } else {
               sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640029, mp4a.40.2"')

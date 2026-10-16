@@ -2,11 +2,13 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 import { handleBack, installBackListeners } from './hooks/useBackHandler'
 
 /**
- * Intégration de l'application native (Capacitor : Android / Android TV, iOS plus tard).
+ * Intégration de l'application native (Capacitor : Android / Android TV, iPhone / iPad).
  * Dans un navigateur, tout ceci est sans effet.
  */
 export const isNativeApp = Capacitor.isNativePlatform()
 export const nativePlatform = Capacitor.getPlatform() // 'android' | 'ios' | 'web'
+/** Lecteurs vidéo externes (VLC, Nova…) : application Android uniquement. */
+export const hasExternalPlayers = nativePlatform === 'android'
 
 interface MoovoNativePlugin {
   getDeviceInfo(): Promise<{ television: boolean }>

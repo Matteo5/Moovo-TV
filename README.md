@@ -111,7 +111,16 @@ Spécificités natives : apparition dans le lanceur TV (bannière), mode télév
 
 Limite connue : la WebView Android ne transmet pas le corps des requêtes POST interceptées ; l'envoi de la synchronisation réseau local n'est donc disponible que depuis le navigateur (la récupération au démarrage fonctionne).
 
-**iOS (plus tard)** : `npx cap add ios` sur un Mac avec Xcode. Le proxy natif devra être réécrit en Swift (`WKURLSchemeHandler`), car iOS ne permet pas d'intercepter les requêtes http de la WebView comme Android.
+**iPhone / iPad** : projet Xcode dans `ios/` (Capacitor, Swift Package Manager). iOS interdit d'intercepter le http de la WebView : l'interface est servie en `capacitor://localhost` et `/api/proxy` est pris en charge par `ios/App/App/NativeProxy.swift` (URLSession : flux continu, Range, réécriture HLS, user-agents IPTV et MAG, POST compris). `MainViewController.swift` greffe ce proxy sur le gestionnaire de schéma de Capacitor. Lecture : hls.js et MPEG-TS via ManagedMediaSource (iOS 17.1+), sinon HLS natif. Lecteurs externes indisponibles sur iOS.
+
+Compiler sur un Mac (Xcode 16+, iPhone en iOS 17.1+ conseillé) :
+1. Copier le projet (sans `node_modules`), puis `npm install` et `npm run ios:sync`.
+2. `npm run ios:open` (ou ouvrir `ios/App/App.xcodeproj`).
+3. Xcode › Réglages › Comptes : ajouter son identifiant Apple. Cible **App** › Signing & Capabilities : cocher « Automatically manage signing », choisir son équipe. Si l'identifiant `tv.moovo.app` est refusé, le remplacer (ex. `tv.moovo.app.<nom>`).
+4. Brancher l'iPhone (activer Réglages › Confidentialité et sécurité › Mode développeur), le choisir comme destination, ▶︎.
+5. Compte gratuit : l'appli expire au bout de 7 jours. Pour la ré-signer depuis Windows sans Mac : Product › Archive, exporter l'`.ipa` (ou zipper `Payload/App.app`), puis Sideloadly. Compte payant : Archive › TestFlight.
+
+Mise au point : `MOOVO_DEBUG=1 npm run ios:sync`, puis Safari du Mac › Développement › iPhone.
 
 ## Ce que fait l'application
 

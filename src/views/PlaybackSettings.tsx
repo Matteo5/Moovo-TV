@@ -7,7 +7,7 @@ import {
   usePlaybackPrefs,
   type BufferProfile,
 } from '../services/playbackPrefs'
-import { getInstalledPlayers, isNativeApp } from '../native'
+import { getInstalledPlayers, hasExternalPlayers } from '../native'
 
 const BUFFERS: { id: BufferProfile; label: string; hint: string }[] = [
   { id: 'short', label: 'Court', hint: 'Démarrage et zapping plus rapides' },
@@ -46,7 +46,7 @@ export const PlaybackSettings: React.FC = () => {
   const [installed, setInstalled] = useState<string[] | null>(null)
 
   useEffect(() => {
-    if (isNativeApp) void getInstalledPlayers().then(setInstalled)
+    if (hasExternalPlayers) void getInstalledPlayers().then(setInstalled)
   }, [])
 
   const players = EXTERNAL_PLAYERS.filter(
@@ -74,7 +74,7 @@ export const PlaybackSettings: React.FC = () => {
         ))}
       </Group>
 
-      {isNativeApp && (
+      {hasExternalPlayers && (
         <Group
           title="Lecteur des films et séries"
           note={

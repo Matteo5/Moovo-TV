@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Play, RotateCcw, Heart, Star, Clock, ExternalLink } from 'lucide-react'
-import { isNativeApp, openInExternalPlayer } from '../native'
+import { hasExternalPlayers, openInExternalPlayer } from '../native'
 import { useIptvStore } from '../store/useIptvStore'
 import type { SeriesSeason, VodItem, SeriesEpisode } from '../types/iptv'
 import { xtreamService } from '../services/xtreamService'
@@ -199,7 +199,7 @@ const VodDetail: React.FC = () => {
                     : 'Premier épisode'}
                 </Button>
               )}
-              {isNativeApp && directPlayable && (
+              {hasExternalPlayers && directPlayable && (
                 <Button size="lg" icon={<ExternalLink className="size-5" />} onClick={() => void openInExternalPlayer(details.streamUrl, 'ask', details.cleanTitle)}>
                   Autre lecteur
                 </Button>
