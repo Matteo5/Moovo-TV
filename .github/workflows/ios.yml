@@ -64,9 +64,13 @@ jobs:
             build | tee xcodebuild.log | grep -E '(error|warning: .*deprecated|BUILD (SUCCEEDED|FAILED))' || true
           test -d .ios-build/Build/Products/Release-iphoneos/App.app
 
+      # Erreurs remontées en annotations : lisibles sur la page du run (et par l'API) sans ouvrir le journal
       - name: Erreurs de compilation
         if: failure()
-        run: grep -E 'error:' xcodebuild.log | sort -u | head -50 || true
+        run: |
+          grep -E 'error:' xcodebuild.log | sed -E 's#^.*/(ios/App/[^:]+):#\1:#' | sort -u | head -40 | while IFS= read -r line; do
+            echo "::error::${line//%/%25}"
+          done || true
 
       - name: Paquet .ipa
         run: |
