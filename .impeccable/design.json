@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T00:00:00Z",
+  "title": "Design System: Moovo TV",
+  "extensions": {
+    "colorMeta": {
+      "ink-950": { "role": "neutral", "displayName": "Nuit profonde", "canonical": "#030919", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "ink-900": { "role": "neutral", "displayName": "Nuit moyenne", "canonical": "#071130", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "ink-850": { "role": "neutral", "displayName": "Nuit des images en attente", "canonical": "#0b173c", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "ink-800": { "role": "neutral", "displayName": "Nuit du halo d'accueil", "canonical": "#111f4a", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "ink-700": { "role": "neutral", "displayName": "Nuit claire", "canonical": "#1c2d5e", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "ink-600": { "role": "neutral", "displayName": "Nuit d'aube", "canonical": "#2c4076", "tonalRamp": ["#030919", "#071130", "#0b173c", "#111f4a", "#1c2d5e", "#2c4076", "#7482ad", "#aab5d8"] },
+      "paper": { "role": "neutral", "displayName": "Blanc froid", "canonical": "#f3f5ff", "tonalRamp": ["oklch(20% 0.02 275)", "oklch(32% 0.02 275)", "oklch(44% 0.02 275)", "oklch(56% 0.02 275)", "oklch(68% 0.02 275)", "oklch(80% 0.02 275)", "oklch(90% 0.02 275)", "oklch(97% 0.015 275)"] },
+      "mist": { "role": "neutral", "displayName": "Brume", "canonical": "#aab5d8", "tonalRamp": ["oklch(18% 0.05 270)", "oklch(30% 0.05 270)", "oklch(42% 0.05 270)", "oklch(54% 0.05 270)", "oklch(66% 0.05 270)", "oklch(77% 0.05 270)", "oklch(87% 0.04 270)", "oklch(95% 0.02 270)"] },
+      "fog": { "role": "neutral", "displayName": "Brouillard", "canonical": "#7482ad", "tonalRamp": ["oklch(18% 0.06 270)", "oklch(30% 0.06 270)", "oklch(42% 0.06 270)", "oklch(60% 0.06 270)", "oklch(70% 0.05 270)", "oklch(80% 0.04 270)", "oklch(88% 0.03 270)", "oklch(95% 0.02 270)"] },
+      "brand-cyan": { "role": "primary", "displayName": "Cyan de queue", "canonical": "#1ec8ff", "tonalRamp": ["oklch(18% 0.06 230)", "oklch(30% 0.1 230)", "oklch(42% 0.13 230)", "oklch(54% 0.15 230)", "oklch(66% 0.16 230)", "oklch(77% 0.15 230)", "oklch(87% 0.1 230)", "oklch(95% 0.04 230)"] },
+      "brand-violet": { "role": "secondary", "displayName": "Violet de la traînée", "canonical": "#9b6bff", "tonalRamp": ["oklch(18% 0.08 295)", "oklch(30% 0.13 295)", "oklch(42% 0.17 295)", "oklch(54% 0.2 295)", "oklch(64% 0.2 295)", "oklch(75% 0.15 295)", "oklch(86% 0.09 295)", "oklch(95% 0.04 295)"] },
+      "brand-magenta": { "role": "secondary", "displayName": "Magenta de la traînée", "canonical": "#ff3ea5", "tonalRamp": ["oklch(18% 0.07 355)", "oklch(30% 0.12 355)", "oklch(42% 0.17 355)", "oklch(54% 0.21 355)", "oklch(65% 0.23 355)", "oklch(76% 0.16 355)", "oklch(86% 0.09 355)", "oklch(95% 0.03 355)"] },
+      "brand-orange": { "role": "secondary", "displayName": "Orange de la traînée", "canonical": "#ff8a1f", "tonalRamp": ["oklch(18% 0.05 55)", "oklch(30% 0.09 55)", "oklch(42% 0.13 55)", "oklch(54% 0.16 55)", "oklch(66% 0.18 55)", "oklch(76% 0.17 55)", "oklch(86% 0.1 55)", "oklch(95% 0.04 55)"] },
+      "brand-yellow": { "role": "secondary", "displayName": "Jaune de pointe", "canonical": "#ffd23f", "tonalRamp": ["oklch(18% 0.04 90)", "oklch(30% 0.07 90)", "oklch(42% 0.1 90)", "oklch(54% 0.12 90)", "oklch(66% 0.15 90)", "oklch(78% 0.16 90)", "oklch(88% 0.15 90)", "oklch(96% 0.06 90)"] },
+      "onair": { "role": "tertiary", "displayName": "Rouge antenne", "canonical": "#ff3d6e", "tonalRamp": ["oklch(18% 0.07 15)", "oklch(30% 0.12 15)", "oklch(42% 0.17 15)", "oklch(54% 0.21 15)", "oklch(65% 0.22 15)", "oklch(76% 0.15 15)", "oklch(86% 0.08 15)", "oklch(95% 0.03 15)"] },
+      "accent-ink": { "role": "neutral", "displayName": "Encre d'accent", "canonical": "#001726", "tonalRamp": ["#001726"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Grands titres de page (3.25rem accueil, 2.6rem pages, 1.95rem fiche) ; en capitales sur les tuiles à fond d'image." },
+      "headline": { "displayName": "Headline", "purpose": "Titres de collection et de section." },
+      "title": { "displayName": "Title", "purpose": "Titre de la barre compacte au défilement." },
+      "body": { "displayName": "Body", "purpose": "Résumés et texte d'aide ; titres de ligne en 600." },
+      "label": { "displayName": "Label", "purpose": "Pastilles, onglets, métadonnées, actions." },
+      "numeral": { "displayName": "Numéraux", "purpose": "Numéros de chaîne, heures, compteurs, en chiffres tabulaires." },
+      "rank": { "displayName": "Rang", "purpose": "Chiffres géants au trait du Top 10 (trait 3.5 px, couleur de la place sur la traînée)." }
+    },
+    "gradients": [
+      { "name": "brand-gradient", "value": "linear-gradient(100deg, #1ec8ff 0%, #9b6bff 34%, #ff3ea5 58%, #ff8a1f 82%, #ffd23f 100%)", "purpose": "La traînée du M : progression, sélection, rangs, focus des tuiles TV, bouton principal TV." },
+      { "name": "rank-trail", "value": "#1ec8ff, #5aa6ff, #9b6bff, #c95ad6, #ff3ea5, #ff5f6c, #ff8a1f, #ffab2c, #ffd23f, #ffe27a", "purpose": "Couleur du trait des rangs 1 à 10 du Top 10." }
+    ],
+    "materials": [
+      { "name": "m-bar", "value": "background: rgb(5 13 38 / 0.74); backdrop-filter: blur(22px) saturate(1.7)", "purpose": "Verre sombre des éléments flottants (barre d'onglets, barre compacte, boutons de barre, menu de tri). Coupé en mode TV." }
+    ],
+    "shadows": [
+      { "name": "poster-lift", "value": "0 1rem 2rem -0.75rem rgb(0 0 0 / 0.8)", "purpose": "Affiches du Top 10 devant leur chiffre." },
+      { "name": "panel-float", "value": "0 1.5rem 3rem -1rem rgb(0 0 0 / 0.8)", "purpose": "Menu de tri, affiche de la fiche (0.9)." },
+      { "name": "tabbar", "value": "0 1.25rem 2.5rem -0.75rem rgb(0 0 0 / 0.85)", "purpose": "Barre d'onglets flottante." },
+      { "name": "rank-on-image", "value": "drop-shadow(0 0.25rem 0.75rem rgb(0 0 0 / 0.6))", "purpose": "Rangs imprimés sur le mur d'ouverture." },
+      { "name": "tile-focus-tv", "value": "0 1.25rem 3rem -1rem rgb(0 0 0 / 0.85)", "purpose": "Tuile au focus (monde TV / ordinateur, incumbent)." }
+    ],
+    "motion": [
+      { "name": "ease-snap", "value": "cubic-bezier(0.2, 0.9, 0.25, 1)", "purpose": "Courbe de toutes les transitions de l'app." },
+      { "name": "press", "value": "transform scale(0.965) 220ms ease-snap", "purpose": "Appui tactile sur tout élément touchable (iPhone)." },
+      { "name": "tab-indicator", "value": "transform 420ms ease-snap", "purpose": "Pastille qui glisse sous l'onglet actif." },
+      { "name": "m-sheet-in", "value": "translateY(2.5rem) → none, 420ms ease-snap", "purpose": "Montée de la fiche titre, sans partir de l'opacité zéro." },
+      { "name": "m-fade-up", "value": "opacity 0.4 → 1, translateY(0.6rem) → none, 520ms ease-snap", "purpose": "Entrées de menus et champs." },
+      { "name": "m-poster", "value": "view-transition 460ms ease-snap", "purpose": "L'affiche touchée devient l'affiche de la fiche (iOS 18+)." },
+      { "name": "sheet-dismiss", "value": "glisser > 110 px (résistance 0.55), retour 320ms ease-snap", "purpose": "Fermeture de la fiche au glisser vers le bas." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "device-mobile", "value": "html[data-device=\"mobile\"]" },
+      { "name": "device-desktop", "value": "html[data-device=\"desktop\"]" },
+      { "name": "device-tv", "value": "html[data-device=\"tv\"]" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Bouton Lecture",
+      "kind": "button",
+      "refersTo": "button-play",
+      "description": "Action principale de la fiche titre, toujours en premier.",
+      "html": "<button class=\"ds-btn-play\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><polygon points=\"6 3 20 12 6 21 6 3\"/></svg><span>Lecture</span></button>",
+      "css": ".ds-btn-play { display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem; height: 3.25rem; min-width: 14rem; padding: 0 0.75rem; border: none; border-radius: 0.95rem; background: var(--color-paper, #f3f5ff); color: var(--color-ink-950, #030919); font-family: var(--font-sans, 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif); font-size: 1.02rem; font-weight: 700; transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-btn-play:active { transform: scale(0.965); } .ds-btn-play:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Bouton Ma liste",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Action secondaire à côté de Lecture.",
+      "html": "<button class=\"ds-btn-secondary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Ma liste</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; height: 3.25rem; padding: 0 1rem; border: none; border-radius: 0.95rem; background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1); color: var(--color-paper, #f3f5ff); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.92rem; font-weight: 600; transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-btn-secondary:active { transform: scale(0.965); } .ds-btn-secondary[aria-pressed=\"true\"] { background: rgb(255 255 255 / 0.12); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Pastilles de filtre",
+      "kind": "chip",
+      "refersTo": "pill",
+      "description": "Genres, univers, saisons ; la sélectionnée en blanc froid.",
+      "html": "<div class=\"ds-pills\"><button class=\"ds-pill\" aria-selected=\"true\">Tous</button><button class=\"ds-pill\">Action <span class=\"ds-pill-count\">412</span></button><button class=\"ds-pill\">Comédie</button></div>",
+      "css": ".ds-pills { display: flex; gap: 0.5rem; } .ds-pill { display: inline-flex; align-items: center; gap: 0.375rem; height: 2.25rem; padding: 0 1rem; border: none; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: var(--color-mist, #aab5d8); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.86rem; font-weight: 600; transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1), background-color 150ms; } .ds-pill:active { transform: scale(0.965); } .ds-pill[aria-selected=\"true\"] { background: var(--color-paper, #f3f5ff); color: var(--color-ink-950, #030919); } .ds-pill-count { font-family: var(--font-mono, 'Atkinson Hyperlegible Mono', monospace); font-size: 0.7rem; font-variant-numeric: tabular-nums; color: var(--color-fog, #7482ad); } .ds-pill[aria-selected=\"true\"] .ds-pill-count { color: var(--color-ink-600, #2c4076); } .ds-pill:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Champ de recherche",
+      "kind": "input",
+      "refersTo": "field-search",
+      "description": "Voile blanc, loupe à gauche, anneau d'accent au focus.",
+      "html": "<label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input type=\"search\" placeholder=\"Rechercher dans les films\"></label>",
+      "css": ".ds-search { position: relative; display: flex; align-items: center; width: 20rem; } .ds-search svg { position: absolute; left: 0.875rem; color: var(--color-fog, #7482ad); pointer-events: none; } .ds-search input { width: 100%; height: 2.75rem; padding: 0 2.5rem; border: none; border-radius: 0.8rem; background: rgb(255 255 255 / 0.08); color: var(--color-paper, #f3f5ff); caret-color: var(--accent, #1ec8ff); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.95rem; } .ds-search input::placeholder { color: var(--color-fog, #7482ad); } .ds-search input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent, #1ec8ff); }"
+    },
+    {
+      "name": "Barre d'onglets flottante",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Gélule de verre sombre ; pastille glissante et liseré de traînée sous l'onglet actif.",
+      "html": "<nav class=\"ds-tabbar\"><span class=\"ds-tab-indicator\"></span><button class=\"ds-tab\" aria-current=\"page\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\"/></svg>Accueil<span class=\"ds-tab-streak\"></span></button><button class=\"ds-tab\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"15\" rx=\"2\"/><path d=\"m2 6 4-4\"/><path d=\"m10 6 4-4\"/><path d=\"m18 6 4-4\"/></svg>Films</button><button class=\"ds-tab\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"15\" rx=\"2\"/><path d=\"m17 2-5 5-5-5\"/></svg>Séries</button><button class=\"ds-tab\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M16.2 7.8a6 6 0 0 1 0 8.4\"/><path d=\"M7.8 16.2a6 6 0 0 1 0-8.4\"/></svg>Direct</button><button class=\"ds-tab\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>Recherche</button></nav>",
+      "css": ".ds-tabbar { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); width: 22rem; height: 3.9rem; padding: 0.25rem; border-radius: 1.95rem; background: rgb(5 13 38 / 0.74); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), 0 1.25rem 2.5rem -0.75rem rgb(0 0 0 / 0.85); } .ds-tab-indicator { position: absolute; top: 0.25rem; bottom: 0.25rem; left: 0.25rem; width: calc((100% - 0.5rem) / 5); border-radius: 1.6rem; background: rgb(255 255 255 / 0.12); transition: transform 420ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; border: none; border-radius: 1.6rem; background: none; color: var(--color-fog, #7482ad); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.66rem; font-weight: 600; transition: color 150ms; } .ds-tab[aria-current=\"page\"] { color: var(--color-paper, #f3f5ff); } .ds-tab:hover { color: var(--color-mist, #aab5d8); } .ds-tab:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; } .ds-tab-streak { position: absolute; bottom: 0.25rem; width: 1.25rem; height: 3px; border-radius: 999px; background-image: var(--brand-gradient, linear-gradient(100deg, #1ec8ff 0%, #9b6bff 34%, #ff3ea5 58%, #ff8a1f 82%, #ffd23f 100%)); }"
+    },
+    {
+      "name": "Affiche de rangée",
+      "kind": "card",
+      "refersTo": "poster",
+      "description": "Affiche 2:3 sans cadre, titre et année dessous, progression de reprise en traînée.",
+      "html": "<button class=\"ds-poster\"><div class=\"ds-poster-art\"><span class=\"ds-poster-fallback\">Le Comte de Monte-Cristo</span><div class=\"ds-poster-progress\"><div class=\"ds-progress\"><div class=\"ds-progress-fill\" style=\"width:42%;background-size:238% 100%\"></div></div></div></div><p class=\"ds-poster-title\">Le Comte de Monte-Cristo</p><p class=\"ds-poster-meta\">2024</p></button>",
+      "css": ".ds-poster { width: 7.75rem; padding: 0; border: none; background: none; text-align: left; transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-poster:active { transform: scale(0.965); } .ds-poster:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; border-radius: 0.9rem; } .ds-poster-art { position: relative; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 0.9rem; display: flex; align-items: flex-end; padding: 0.75rem; background: linear-gradient(165deg, var(--color-ink-700, #1c2d5e), var(--color-ink-900, #071130) 70%); } .ds-poster-fallback { font-family: var(--font-display, 'Montserrat Variable', sans-serif); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; font-size: 0.875rem; color: var(--color-paper, #f3f5ff); } .ds-poster-progress { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.25rem 0.5rem 0.5rem; background: linear-gradient(to top, rgb(3 9 25 / 0.9), transparent); } .ds-progress { height: 3px; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 0.2); } .ds-progress-fill { height: 100%; border-radius: 999px; background-image: var(--brand-gradient, linear-gradient(100deg, #1ec8ff 0%, #9b6bff 34%, #ff3ea5 58%, #ff8a1f 82%, #ffd23f 100%)); } .ds-poster-title { margin: 0.5rem 0 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.82rem; font-weight: 600; line-height: 1.25; color: var(--color-paper, #f3f5ff); } .ds-poster-meta { margin: 0; font-size: 0.74rem; color: var(--color-fog, #7482ad); }"
+    },
+    {
+      "name": "Mur de collections (forme lead)",
+      "kind": "custom",
+      "refersTo": "wall-tile",
+      "description": "Une affiche 2:3 sur deux rangs, deux images paysage à côté, titres en capitales Montserrat sur l'image.",
+      "html": "<div class=\"ds-wall\"><button class=\"ds-wall-tile ds-wall-lead\"><span class=\"ds-wall-rank\" style=\"--rank:#1ec8ff\">1</span><p class=\"ds-wall-title\">Dune deuxième partie</p></button><button class=\"ds-wall-tile ds-wall-small\"><span class=\"ds-wall-rank ds-wall-rank-sm\" style=\"--rank:#5aa6ff\">2</span><p class=\"ds-wall-title ds-wall-title-sm\">Oppenheimer</p></button><button class=\"ds-wall-tile ds-wall-small\"><span class=\"ds-wall-rank ds-wall-rank-sm\" style=\"--rank:#9b6bff\">3</span><p class=\"ds-wall-title ds-wall-title-sm\">Barbie</p></button></div>",
+      "css": ".ds-wall { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: repeat(2, 1fr); gap: 0.625rem; width: 22rem; } .ds-wall-tile { position: relative; overflow: hidden; display: block; padding: 0; border: none; border-radius: 1.125rem; text-align: left; background: linear-gradient(180deg, transparent 40%, rgb(3 9 25 / 0.92)), linear-gradient(165deg, var(--color-ink-700, #1c2d5e), var(--color-ink-850, #0b173c)); transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-wall-tile:active { transform: scale(0.965); } .ds-wall-tile:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; } .ds-wall-lead { grid-row: 1 / span 2; aspect-ratio: 2 / 3; } .ds-wall-small { min-height: 0; } .ds-wall-rank { position: absolute; left: 0.625rem; top: 0.375rem; font-family: var(--font-display, 'Montserrat Variable', sans-serif); font-weight: 900; font-size: 5.5rem; letter-spacing: -0.09em; line-height: 0.78; color: rgb(3 9 25 / 0.35); -webkit-text-stroke: 3.5px var(--rank); paint-order: stroke fill; filter: drop-shadow(0 0.25rem 0.75rem rgb(0 0 0 / 0.6)); } .ds-wall-rank-sm { font-size: 3.6rem; } .ds-wall-title { position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.75rem; margin: 0; font-family: var(--font-display, 'Montserrat Variable', sans-serif); font-weight: 900; letter-spacing: -0.04em; line-height: 0.92; text-transform: uppercase; font-size: 1.7rem; color: var(--color-paper, #f3f5ff); } .ds-wall-title-sm { font-size: 1.15rem; }"
+    },
+    {
+      "name": "Rangée Top 10",
+      "kind": "custom",
+      "description": "Chiffres géants au trait dont la couleur parcourt la traînée du cyan (n° 1) au jaune (n° 10), affiche qui chevauche son chiffre.",
+      "html": "<div class=\"ds-top\"><button class=\"ds-top-item\"><span class=\"ds-rank\" style=\"--rank:#c95ad6\">4</span><div class=\"ds-top-art\"></div></button><button class=\"ds-top-item\"><span class=\"ds-rank\" style=\"--rank:#ff3ea5\">5</span><div class=\"ds-top-art\"></div></button><button class=\"ds-top-item\"><span class=\"ds-rank\" style=\"--rank:#ff5f6c\">6</span><div class=\"ds-top-art\"></div></button></div>",
+      "css": ".ds-top { display: flex; gap: 0.75rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; } .ds-top-item { display: flex; align-items: flex-end; flex-shrink: 0; padding: 0; border: none; background: none; scroll-snap-align: start; transition: transform 220ms cubic-bezier(0.2, 0.9, 0.25, 1); } .ds-top-item:active { transform: scale(0.965); } .ds-top-item:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; } .ds-rank { position: relative; z-index: 0; margin-right: -0.625rem; font-family: var(--font-display, 'Montserrat Variable', sans-serif); font-weight: 900; font-size: 7.6rem; letter-spacing: -0.09em; line-height: 0.78; color: var(--color-ink-950, #030919); -webkit-text-stroke: 3.5px var(--rank); paint-order: stroke fill; } .ds-top-art { position: relative; z-index: 1; width: 5.9rem; aspect-ratio: 2 / 3; border-radius: 0.9rem; background: linear-gradient(165deg, var(--color-ink-700, #1c2d5e), var(--color-ink-900, #071130) 70%); box-shadow: 0 1rem 2rem -0.75rem rgb(0 0 0 / 0.8); }"
+    },
+    {
+      "name": "Bouton principal TV",
+      "kind": "button",
+      "description": "Monde TV / ordinateur (incumbent) : fond en traînée, texte nuit.",
+      "html": "<button class=\"ds-btn-brand\">Lancer</button>",
+      "css": ".ds-btn-brand { height: 3rem; padding: 0 1.5rem; border: none; border-radius: 999px; background: var(--brand-gradient, linear-gradient(100deg, #1ec8ff 0%, #9b6bff 34%, #ff3ea5 58%, #ff8a1f 82%, #ffd23f 100%)); color: #030919; font-family: var(--font-sans, system-ui, sans-serif); font-weight: 700; font-size: 1rem; } .ds-btn-brand:hover { filter: brightness(1.08) saturate(1.05); } .ds-btn-brand:focus-visible { outline: 3px solid var(--accent, #1ec8ff); outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La nuit du logo, et sa traînée",
+    "overview": "Tout Moovo TV vient du logo fourni par le créateur : un fond de nuit bleue (#050F2C décliné en six profondeurs), un texte blanc froid, et la traînée du « M » qui file du cyan au jaune en passant par le violet, le magenta et l'orange. Cette traînée est la seule signature colorée du système ; elle ne décore jamais, elle désigne. Les titres prennent la géométrie du mot « Moovo » (Montserrat), la lecture passe par Atkinson Hyperlegible Next, les nombres par sa variante à chasse fixe.\n\nDeux surfaces partagent cette base de jetons. Le monde TV / ordinateur (« régie TV », src/app/Shell.tsx, src/views/*, src/components/*, src/ui/*) est l'incumbent : rail latéral repliable, tuiles dont le focus est entouré de la traînée, mode TV agrandi pour la lecture à 3 m. Il n'est pas redécrit ici. Le monde iPhone (« Le Mur de collections », src/mobile/*, html[data-device=\"mobile\"]) présente le catalogue comme un mur d'affiches de cinéma : grands titres Montserrat noirs très serrés, mosaïques de tailles mêlées qui changent de forme d'une collection à l'autre, Top 10 aux chiffres géants au trait. Il refuse la pile uniforme de rangées identiques des applis de streaming.\n\nLa matière reste sobre : nuit à plat, éclaircie seulement derrière le grand titre de l'accueil ; affiches sans cadre ; verre sombre réservé aux barres flottantes ; ombres douces qui décollent l'affiche du fond. La légèreté sur matériel modeste prime : le flou d'arrière-plan est coupé en mode TV, toutes les animations s'éteignent sous prefers-reduced-motion.",
+    "keyCharacteristics": [
+      "Nuit du logo en fond, blanc froid en texte, aucune autre teinte de surface.",
+      "La traînée du M réservée aux rangs, à la progression et à la sélection (et au focus des tuiles en TV).",
+      "Titres Montserrat 800-900 très serrés posés comme des titres d'affiche.",
+      "Sur iPhone : murs d'affiches aux formes alternées, rails aimantés, barre d'onglets flottante en verre sombre.",
+      "Données vraies ou rien : sans rang réel, pas de chiffre ; sans image, le titre posé sur la nuit."
+    ],
+    "rules": [
+      { "name": "La règle de la traînée qui désigne", "body": "La traînée du M n'apparaît que là où elle dit quelque chose : un rang, une progression, une sélection (ou le focus en TV). Jamais en fond de section, jamais en texte, jamais en bordure décorative.", "section": "colors" },
+      { "name": "La règle de la nuit à plat", "body": "Les surfaces sont la nuit du logo, à plat. Seul le haut de l'accueil reçoit un halo radial ink-800 à 70 % derrière son grand titre ; aucune autre teinte de surface n'est introduite.", "section": "colors" },
+      { "name": "La règle de l'affiche", "body": "Les titres se serrent (−0.03 à −0.04 em) et se lisent comme des titres d'affiche ; seuls les titres posés sur une image de fond passent en capitales. Une affiche qui porte déjà son titre imprimé n'en reçoit pas un second.", "section": "typography" },
+      { "name": "La règle des chiffres justes", "body": "Tout nombre qui se compare ou se met à jour (numéro de chaîne, heure, compteur) est en chiffres tabulaires.", "section": "typography" },
+      { "name": "La règle du verre qui flotte", "body": "Le flou d'arrière-plan est réservé aux éléments qui flottent au-dessus du contenu qui défile ; jamais sur une carte posée dans le flux. En mode TV il est coupé partout (coût GPU).", "section": "elevation" }
+    ],
+    "dos": [
+      "Do réserver la traînée du M aux rangs, à la progression et à la sélection (et au focus des tuiles en TV).",
+      "Do colorer chaque rang du Top 10 avec sa place sur la traînée, du cyan (n° 1) au jaune (n° 10), en chiffre au trait sur fond nuit.",
+      "Do alterner les formes de mur (lead, wide, quad, lead inversé) d'une collection à la suivante.",
+      "Do ouvrir chaque page iPhone sur un grand titre Display relayé par une barre compacte en verre au défilement.",
+      "Do mettre la progression du direct en rouge antenne et celle des reprises en traînée.",
+      "Do afficher le titre sur la nuit du logo quand une image manque, et aucun chiffre quand un rang n'est pas réel.",
+      "Do faire enfoncer tout élément touchable (96.5 %, 220 ms, --ease-snap) et couper les animations sous prefers-reduced-motion."
+    ],
+    "donts": [
+      "Don't empiler des rangées identiques d'affiches comme seule structure de page.",
+      "Don't utiliser la traînée en fond de section, en texte ou en bordure décorative.",
+      "Don't introduire une teinte de surface hors de la nuit du logo et des voiles blancs.",
+      "Don't mettre de cadre ou de liseré autour d'une affiche, ni répéter un titre déjà imprimé sur l'affiche.",
+      "Don't poser du flou d'arrière-plan sur un élément du flux, ni en mode TV.",
+      "Don't redessiner ou recolorer le logo ; il est seulement détouré et cadré."
+    ]
+  }
+}

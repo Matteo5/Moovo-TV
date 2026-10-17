@@ -5,6 +5,8 @@ import { useSpatialNavigation } from './hooks/useSpatialNavigation'
 import { SignalLoader } from './ui/Brand'
 
 const Shell = lazy(() => import('./app/Shell').then((m) => ({ default: m.Shell })))
+// Téléphone : interface tactile dédiée (« Le Mur de collections ») ; TV et ordinateur gardent la leur
+const MobileShell = lazy(() => import('./mobile/MobileShell'))
 const Onboarding = lazy(() => import('./views/Onboarding').then((m) => ({ default: m.Onboarding })))
 
 const SOURCE_NAMES = {
@@ -41,7 +43,9 @@ export const App: React.FC = () => {
   }
 
   return (
-    <Suspense fallback={<SignalLoader title="Moovo TV" />}>{hasChannels ? <Shell device={device} /> : <Onboarding />}</Suspense>
+    <Suspense fallback={<SignalLoader title="Moovo TV" />}>
+      {hasChannels ? device === 'mobile' ? <MobileShell /> : <Shell device={device} /> : <Onboarding />}
+    </Suspense>
   )
 }
 

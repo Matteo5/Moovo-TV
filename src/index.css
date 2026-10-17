@@ -352,6 +352,110 @@ html[data-device="tv"] *::before {
   animation: rise 420ms var(--ease-snap) both;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   iPhone — « Le Mur de collections »
+   Le catalogue en mur d'affiches : grands titres Montserrat très serrés, mosaïques de tailles mêlées,
+   et la traînée du M réservée aux rangs, à la progression et à la sélection.
+   ───────────────────────────────────────────────────────────── */
+:root[data-device="mobile"] {
+  --m-gutter: 1.25rem;
+  /* Hauteur réservée à la barre d'onglets flottante */
+  --m-tabbar: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+@layer components {
+  /* Matière des barres iOS : la nuit du logo, floutée et saturée par ce qui défile dessous */
+  .m-bar {
+    background: rgb(5 13 38 / 0.74);
+    -webkit-backdrop-filter: blur(22px) saturate(1.7);
+    backdrop-filter: blur(22px) saturate(1.7);
+  }
+  /* Appui tactile : l'élément s'enfonce légèrement, comme un bouton physique */
+  .m-press {
+    transition: transform 220ms var(--ease-snap), opacity 220ms ease;
+    -webkit-touch-callout: none;
+  }
+  .m-press:active {
+    transform: scale(0.965);
+  }
+  /* Titres de collection : Montserrat noir, serrés, posés comme des titres d'affiche */
+  .m-display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+  }
+  .m-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  /* Rang du Top 10 : chiffre géant au trait, sa couleur parcourt la traînée du M */
+  .m-rank {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.09em;
+    line-height: 0.78;
+    color: var(--color-ink-950);
+    -webkit-text-stroke: 3.5px var(--rank);
+    paint-order: stroke fill;
+  }
+  /* Défilement horizontal aimanté des rangées */
+  .m-rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--m-gutter);
+    padding-inline: var(--m-gutter);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .m-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .m-rail > * {
+    scroll-snap-align: start;
+  }
+}
+
+/* L'affiche touchée devient l'affiche de la fiche (transition de vue, iOS 18+) */
+::view-transition-group(m-poster) {
+  animation-duration: 460ms;
+  animation-timing-function: var(--ease-snap);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+}
+
+/* Entrées : glissements depuis un état déjà visible, jamais depuis l'opacité zéro */
+@keyframes m-sheet-in {
+  from {
+    transform: translateY(2.5rem);
+  }
+  to {
+    transform: none;
+  }
+}
+.animate-m-sheet {
+  animation: m-sheet-in 420ms var(--ease-snap) both;
+}
+
+@keyframes m-fade-up {
+  from {
+    opacity: 0.4;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-m-fade {
+  animation: m-fade-up 520ms var(--ease-snap) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

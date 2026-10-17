@@ -4,8 +4,13 @@ import './index.css'
 import App from './App.tsx'
 import { isNativeApp, setupNative } from './native'
 
+// Développement uniquement : catalogue de démonstration synthétique avec `?demo` (retiré des versions publiées)
+const demo = import.meta.env.DEV && new URLSearchParams(location.search).has('demo')
+  ? import('./dev/demoCatalog').then((m) => m.installDemoCatalog())
+  : Promise.resolve()
+
 // L'application native doit savoir si elle tourne sur un téléviseur avant le premier rendu
-void setupNative().finally(() => {
+void Promise.all([setupNative(), demo]).finally(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
