@@ -52,7 +52,7 @@ jobs:
 
       - name: Compilation (sans signature)
         run: |
-          set -o pipefail
+          set +e
           xcodebuild \
             -project ios/App/App.xcodeproj \
             -scheme App \
@@ -61,16 +61,28 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath .ios-build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            build | tee xcodebuild.log | grep -E '(error|warning: .*deprecated|BUILD (SUCCEEDED|FAILED))' || true
-          test -d .ios-build/Build/Products/Release-iphoneos/App.app
+            build > xcodebuild.log 2>&1
+          status=$?
+          tail -n 30 xcodebuild.log
+          exit $status
+
+      # Le dossier App.app existe même quand le code Swift ne compile pas : on vérifie le programme lui-même
+      - name: Vérification de l'appli
+        run: |
+          APP=.ios-build/Build/Products/Release-iphoneos/App.app
+          test -f "$APP/App" || { echo "::error::Programme App absent : la compilation a échoué"; exit 1; }
+          test -f "$APP/Info.plist" || { echo "::error::Info.plist absent"; exit 1; }
 
       # Erreurs remontées en annotations : lisibles sur la page du run (et par l'API) sans ouvrir le journal
       - name: Erreurs de compilation
         if: failure()
         run: |
-          grep -E 'error:' xcodebuild.log | sed -E 's#^.*/(ios/App/[^:]+):#\1:#' | sort -u | head -40 | while IFS= read -r line; do
-            echo "::error::${line//%/%25}"
-          done || true
+          grep -E 'error:|error \(|fatal error' xcodebuild.log | sed -E 's#^.*/(ios/App/[^ ]+)#\1#' | sort -u | head -40 > errors.txt || true
+          [ -s errors.txt ] || tail -n 40 xcodebuild.log > errors.txt
+          while IFS= read -r line; do
+            line="${line//%/%25}"
+            echo "::error::${line//$'\r'/}"
+          done < errors.txt
 
       - name: Paquet .ipa
         run: |
