@@ -246,7 +246,7 @@ final class NativeProxy: NSObject, URLSessionDataDelegate {
     private func sendStreamHeaders(_ exchange: Exchange, from upstream: HTTPURLResponse?) {
         var headers = corsHeaders()
         headers["Cache-Control"] = "no-store"
-        headers["Content-Type"] = exchange.contentType.isEmpty ? "application/octet-stream" : exchange.contentType
+        headers["Content-Type"] = NativeProxy.mediaType(exchange.contentType, url: exchange.finalUrl)
         let compressed = upstream?.value(forHTTPHeaderField: "Content-Encoding").map { $0 != "identity" } ?? false
         for name in ["Content-Range", "Accept-Ranges", "Content-Length", "Last-Modified", "ETag"] {
             // URLSession décompresse lui-même : la taille annoncée ne correspondrait plus au corps
@@ -348,6 +348,23 @@ final class NativeProxy: NSObject, URLSessionDataDelegate {
         if contentType.lowercased().contains("mpegurl") { return true }
         let path = url.path.lowercased()
         return path.hasSuffix(".m3u8") || path.hasSuffix(".m3u")
+    }
+
+    /**
+     * Le lecteur d'iOS (AVFoundation) se fie au type annoncé, pas au contenu : beaucoup de fournisseurs
+     * envoient « application/octet-stream » pour leurs films, on le déduit alors de l'extension.
+     */
+    private static let typesByExtension = [
+        "mp4": "video/mp4", "m4v": "video/x-m4v", "mov": "video/quicktime", "ts": "video/mp2t",
+        "mkv": "video/x-matroska", "avi": "video/x-msvideo", "m3u8": "application/vnd.apple.mpegurl",
+    ]
+
+    private static func mediaType(_ contentType: String, url: URL) -> String {
+        let mime = mimeOf(contentType).lowercased()
+        let generic = mime.isEmpty || mime == "application/octet-stream" || mime == "binary/octet-stream"
+            || mime == "application/force-download" || mime == "text/plain"
+        if generic, let guessed = typesByExtension[url.pathExtension.lowercased()] { return guessed }
+        return contentType.isEmpty ? "application/octet-stream" : contentType
     }
 
     private static func mimeOf(_ contentType: String) -> String {

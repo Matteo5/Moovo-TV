@@ -111,14 +111,18 @@ Spécificités natives : apparition dans le lanceur TV (bannière), mode télév
 
 Limite connue : la WebView Android ne transmet pas le corps des requêtes POST interceptées ; l'envoi de la synchronisation réseau local n'est donc disponible que depuis le navigateur (la récupération au démarrage fonctionne).
 
-**iPhone / iPad** : projet Xcode dans `ios/` (Capacitor, Swift Package Manager). iOS interdit d'intercepter le http de la WebView : l'interface est servie en `capacitor://localhost` et `/api/proxy` est pris en charge par `ios/App/App/NativeProxy.swift` (URLSession : flux continu, Range, réécriture HLS, user-agents IPTV et MAG, POST compris). `MainViewController.swift` greffe ce proxy sur le gestionnaire de schéma de Capacitor. Lecture : hls.js et MPEG-TS via ManagedMediaSource (iOS 17.1+), sinon HLS natif. Lecteurs externes indisponibles sur iOS.
+**iPhone / iPad** : projet Xcode dans `ios/` (Capacitor, Swift Package Manager). iOS interdit d'intercepter le http de la WebView : l'interface est servie en `capacitor://localhost` et `/api/proxy` est pris en charge par `ios/App/App/NativeProxy.swift` (URLSession : flux continu, Range, réécriture HLS, user-agents IPTV et MAG, POST compris). `MainViewController.swift` greffe ce proxy sur le gestionnaire de schéma de Capacitor. Lecture : hls.js et MPEG-TS via ManagedMediaSource (iOS 17.1+), sinon HLS natif. Le lecteur d'iOS ne lit ni le MKV ni l'AVI (formats courants des films et séries Xtream) : films et épisodes passent donc par un lecteur natif plein écran basé sur VLC (`VLCPlayerViewController.swift`, MobileVLCKit officiel de VideoLAN dans le paquet local `ios/App/VLCKit`), appelé par le plugin `MoovoNative.playVideo` ; il renvoie la position pour la reprise. Réglages de lecture : « Toujours VLC » / « Toujours Infuse » ouvrent plutôt l'appli externe (`vlc-x-callback://`, `infuse://`). Le proxy déduit le type vidéo de l'extension quand le fournisseur envoie `application/octet-stream`.
+
+**Compilation sans Mac (GitHub Actions)** : `.github/workflows/ios.yml` compile l'appli sur un Mac de GitHub à chaque push touchant l'appli (ou à la demande : Actions › iOS › Run workflow) et publie un `.ipa` non signé, artefact `MoovoTV-ipa`. Le télécharger, le dézipper, puis l'installer avec Sideloadly (identifiant Apple de l'utilisateur ; dans les options avancées, garder le même Bundle ID que l'appli déjà installée pour conserver ses données).
 
 Compiler sur un Mac (Xcode 16+, iPhone en iOS 17.1+ conseillé) :
-1. Copier le projet (sans `node_modules`), puis `npm install` et `npm run ios:sync`.
+1. Copier le projet (sans `node_modules`), puis `npm install`, `bash scripts/fetch-vlckit.sh` (télécharge MobileVLCKit) et `npm run ios:sync`.
 2. `npm run ios:open` (ou ouvrir `ios/App/App.xcodeproj`).
 3. Xcode › Réglages › Comptes : ajouter son identifiant Apple. Cible **App** › Signing & Capabilities : cocher « Automatically manage signing », choisir son équipe. Si l'identifiant `tv.moovo.app` est refusé, le remplacer (ex. `tv.moovo.app.<nom>`).
 4. Brancher l'iPhone (activer Réglages › Confidentialité et sécurité › Mode développeur), le choisir comme destination, ▶︎.
 5. Compte gratuit : l'appli expire au bout de 7 jours. Pour la ré-signer depuis Windows sans Mac : Product › Archive, exporter l'`.ipa` (ou zipper `Payload/App.app`), puis Sideloadly. Compte payant : Archive › TestFlight.
+
+Mettre à jour l'interface sans Mac : `npm run ios:patch-ipa -- -Ipa C:\chemin\MoovoTV.ipa` remplace `App.app/public` dans une copie du `.ipa` (`MoovoTV-maj.ipa`), à installer avec Sideloadly. Valable pour tout ce qui est dans `src/` ; une modification des fichiers Swift exige une recompilation sur Mac.
 
 Mise au point : `MOOVO_DEBUG=1 npm run ios:sync`, puis Safari du Mac › Développement › iPhone.
 

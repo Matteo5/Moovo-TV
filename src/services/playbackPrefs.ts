@@ -125,3 +125,10 @@ export const EXTERNAL_PLAYERS: { id: string; label: string }[] = [
   { id: 'com.brouken.player', label: 'Just Player' },
   { id: 'com.newin.nplayer.pro', label: 'nPlayer' },
 ]
+
+/** Lecteurs de l'iPhone, ouverts par leur schéma d'URL (pas de détection possible sans code natif). */
+export const IOS_PLAYERS: { id: string; label: string; hint?: string }[] = [
+  { id: 'internal', label: 'Lecteur Moovo TV', hint: 'Lecteur intégré basé sur VLC : tous les formats (.mkv, .avi…), pistes audio et sous-titres' },
+  { id: 'ios-vlc', label: 'Toujours VLC' },
+  { id: 'ios-infuse', label: 'Toujours Infuse' },
+]

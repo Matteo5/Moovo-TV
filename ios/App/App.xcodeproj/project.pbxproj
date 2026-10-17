@@ -18,6 +18,9 @@
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 		A1D0C0DE2F00000100000001 /* NativeProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000100000002 /* NativeProxy.swift */; };
 		A1D0C0DE2F00000100000003 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000100000004 /* MainViewController.swift */; };
+		A1D0C0DE2F00000200000003 /* VLCKitLink in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0C0DE2F00000200000002 /* VLCKitLink */; };
+		A1D0C0DE2F00000200000004 /* MoovoNativePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */; };
+		A1D0C0DE2F00000200000006 /* VLCPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +37,8 @@
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		A1D0C0DE2F00000100000002 /* NativeProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeProxy.swift; sourceTree = "<group>"; };
 		A1D0C0DE2F00000100000004 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoovoNativePlugin.swift; sourceTree = "<group>"; };
+		A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLCPlayerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +47,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
+				A1D0C0DE2F00000200000003 /* VLCKitLink in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +77,8 @@
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */,
+				A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */,
 				A1D0C0DE2F00000100000004 /* MainViewController.swift */,
 				A1D0C0DE2F00000100000002 /* NativeProxy.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -101,6 +109,7 @@
 			name = App;
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
+				A1D0C0DE2F00000200000002 /* VLCKitLink */,
 			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
@@ -133,6 +142,7 @@
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
 				D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */,
+				A1D0C0DE2F00000200000001 /* XCLocalSwiftPackageReference "VLCKit" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -166,6 +176,8 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				A1D0C0DE2F00000200000006 /* VLCPlayerViewController.swift in Sources */,
+				A1D0C0DE2F00000200000004 /* MoovoNativePlugin.swift in Sources */,
 				A1D0C0DE2F00000100000003 /* MainViewController.swift in Sources */,
 				A1D0C0DE2F00000100000001 /* NativeProxy.swift in Sources */,
 			);
@@ -374,6 +386,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "CapApp-SPM";
 		};
+		A1D0C0DE2F00000200000001 /* XCLocalSwiftPackageReference "VLCKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = VLCKit;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -381,6 +397,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */;
 			productName = "CapApp-SPM";
+		};
+		A1D0C0DE2F00000200000002 /* VLCKitLink */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1D0C0DE2F00000200000001 /* XCLocalSwiftPackageReference "VLCKit" */;
+			productName = VLCKitLink;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

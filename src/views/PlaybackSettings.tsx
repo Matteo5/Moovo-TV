@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import {
   EXTERNAL_PLAYERS,
+  IOS_PLAYERS,
   LANGUAGE_CHOICES,
   setPlaybackPrefs,
   usePlaybackPrefs,
   type BufferProfile,
 } from '../services/playbackPrefs'
-import { getInstalledPlayers, hasExternalPlayers } from '../native'
+import { getInstalledPlayers, hasExternalPlayers, nativePlatform } from '../native'
 
 const BUFFERS: { id: BufferProfile; label: string; hint: string }[] = [
   { id: 'short', label: 'Court', hint: 'Démarrage et zapping plus rapides' },
@@ -49,9 +50,18 @@ export const PlaybackSettings: React.FC = () => {
     if (hasExternalPlayers) void getInstalledPlayers().then(setInstalled)
   }, [])
 
-  const players = EXTERNAL_PLAYERS.filter(
-    (p) => p.id === 'internal' || p.id === 'ask' || installed?.includes(p.id) || prefs.externalPlayer === p.id
-  )
+  const players: { id: string; label: string; hint?: string }[] =
+    nativePlatform === 'ios'
+      ? IOS_PLAYERS
+      : EXTERNAL_PLAYERS.filter(
+          (p) => p.id === 'internal' || p.id === 'ask' || installed?.includes(p.id) || prefs.externalPlayer === p.id
+        )
+  const playerNote =
+    nativePlatform === 'ios'
+      ? 'VLC et Infuse sont gratuits sur l’App Store. Avec un lecteur externe, la reprise de lecture est gérée par ce lecteur.'
+      : installed && installed.length === 0
+        ? 'Aucun lecteur externe détecté (VLC, Nova, MX Player, Just Player…). « Choisir à chaque fois » propose ceux installés.'
+        : 'Avec un lecteur externe, la reprise de lecture est gérée par ce lecteur.'
 
   return (
     <div>
@@ -75,16 +85,15 @@ export const PlaybackSettings: React.FC = () => {
       </Group>
 
       {hasExternalPlayers && (
-        <Group
-          title="Lecteur des films et séries"
-          note={
-            installed && installed.length === 0
-              ? 'Aucun lecteur externe détecté (VLC, Nova, MX Player, Just Player…). « Choisir à chaque fois » propose ceux installés.'
-              : 'Avec un lecteur externe, la reprise de lecture est gérée par ce lecteur.'
-          }
-        >
+        <Group title="Lecteur des films et séries" note={playerNote}>
           {players.map((p) => (
-            <Option key={p.id} selected={prefs.externalPlayer === p.id} onSelect={() => setPlaybackPrefs({ externalPlayer: p.id })} label={p.label} />
+            <Option
+              key={p.id}
+              selected={prefs.externalPlayer === p.id}
+              onSelect={() => setPlaybackPrefs({ externalPlayer: p.id })}
+              label={p.label}
+              hint={p.hint}
+            />
           ))}
         </Group>
       )}

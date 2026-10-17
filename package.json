@@ -19,6 +19,7 @@
     "android:apk:release": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1 -Release",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
+    "ios:patch-ipa": "powershell -ExecutionPolicy Bypass -File scripts/patch-ipa.ps1",
     "desktop:main": "esbuild electron/main.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/main.cjs",
     "desktop": "npm run build && npm run desktop:main && electron .",
     "desktop:exe": "npm run build && npm run desktop:main && electron-builder --win"

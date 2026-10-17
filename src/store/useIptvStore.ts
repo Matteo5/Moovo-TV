@@ -28,7 +28,7 @@ import { localSyncService } from '../services/localSyncService'
 import { cleanMediaTitle } from '../services/tmdbService'
 import { fileStore } from '../services/fileStore'
 import { getPlaybackPrefs } from '../services/playbackPrefs'
-import { hasExternalPlayers, openInExternalPlayer } from '../native'
+import { hasExternalPlayers, nativePlatform, needsExternalPlayerOnIos, openInExternalPlayer, playInNativePlayer } from '../native'
 
 const LOCAL_FILE_PREFIX = 'file:'
 const RESUME_KEY = 'iptv_vod_resume_points'
@@ -113,7 +113,10 @@ interface IptvState {
   isVodLocked: (item: VodItem) => boolean
   setSearchQuery: (query: string) => void
   setActiveChannel: (channel: Channel | null) => void
-  playVod: (item: VodItem, options?: { episode?: SeriesEpisode; fromStart?: boolean; forceInternal?: boolean }) => void
+  playVod: (
+    item: VodItem,
+    options?: { episode?: SeriesEpisode; fromStart?: boolean; forceInternal?: boolean; skipNativePlayer?: boolean }
+  ) => void
   playChannelNumber: (num: number) => boolean
   playNextChannel: () => void
   playPreviousChannel: () => void
@@ -781,10 +784,30 @@ export const useIptvStore = create<IptvState>((set, get) => {
       const streamUrl = episode ? episode.streamUrl : item.streamUrl
       if (!streamUrl) return
 
-      // Lecteur externe choisi dans les réglages (application Android)
-      const external = getPlaybackPrefs().externalPlayer
+      const title = episode ? `${item.cleanTitle} · S${episode.season} É${episode.episodeNum}` : item.cleanTitle
+      const preferred = getPlaybackPrefs().externalPlayer
+      const resumeFrom = !fromStart && resume && resume.currentTime > 10 ? resume.currentTime : 0
+
+      // iPhone : lecteur VLC intégré (tous formats, pistes audio et sous-titres), reprise enregistrée à la fermeture
+      if (nativePlatform === 'ios' && preferred === 'internal' && !options.forceInternal && !options.skipNativePlayer) {
+        set({ vodDetail: null })
+        void playInNativePlayer(streamUrl, title, resumeFrom).then((result) => {
+          if (!result) {
+            // Appli compilée sans le lecteur natif : ancien comportement
+            get().playVod(item, { ...options, skipNativePlayer: true })
+            return
+          }
+          const { position, duration } = result
+          if (duration <= 0 || position < 5) return
+          if (position > duration - 90 || position / duration > 0.95) get().clearResumePoint(vodId)
+          else get().saveResumePoint(vodId, position, duration)
+        })
+        return
+      }
+
+      // Lecteur externe choisi dans les réglages, ou VLC sur iPhone pour un format qu'il ne lit pas (.mkv…)
+      const external = preferred === 'internal' && needsExternalPlayerOnIos(streamUrl) ? 'ios-vlc' : preferred
       if (hasExternalPlayers && external !== 'internal' && !options.forceInternal) {
-        const title = episode ? `${item.cleanTitle} · S${episode.season} É${episode.episodeNum}` : item.cleanTitle
         void openInExternalPlayer(streamUrl, external, title).then((opened) => {
           if (!opened) get().playVod(item, { ...options, forceInternal: true })
         })
@@ -806,7 +829,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
           streamId: item.streamId,
           streamType: item.type === 'movie' ? 'movie' : 'series',
           vodId,
-          resumeFrom: !fromStart && resume && resume.currentTime > 10 ? resume.currentTime : 0,
+          resumeFrom,
         },
       })
     },

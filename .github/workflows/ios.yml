@@ -1,0 +1,82 @@
+# Compile l'application iPhone sur un Mac de GitHub et publie un .ipa NON signé.
+# Le .ipa se télécharge dans l'onglet Actions (artefact « MoovoTV-ipa ») et s'installe avec Sideloadly,
+# qui le signe avec l'identifiant Apple de l'utilisateur.
+name: iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'ios/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - 'vite.config.ts'
+      - 'scripts/fetch-vlckit.sh'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Version d'Xcode
+        run: xcodebuild -version
+
+      # MobileVLCKit pèse plusieurs centaines de Mo : téléchargé une fois puis gardé en cache
+      - name: Cache MobileVLCKit
+        uses: actions/cache@v4
+        with:
+          path: ios/App/VLCKit/MobileVLCKit.xcframework
+          key: mobilevlckit-3.7.4-20260922-1512
+
+      - name: MobileVLCKit
+        run: bash scripts/fetch-vlckit.sh
+
+      - name: Interface web et projet iOS
+        run: npm run build && npx cap sync ios
+
+      - name: Compilation (sans signature)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath .ios-build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tee xcodebuild.log | grep -E '(error|warning: .*deprecated|BUILD (SUCCEEDED|FAILED))' || true
+          test -d .ios-build/Build/Products/Release-iphoneos/App.app
+
+      - name: Erreurs de compilation
+        if: failure()
+        run: grep -E 'error:' xcodebuild.log | sort -u | head -50 || true
+
+      - name: Paquet .ipa
+        run: |
+          mkdir -p .ipa/Payload
+          cp -R .ios-build/Build/Products/Release-iphoneos/App.app .ipa/Payload/
+          cd .ipa && zip -qry MoovoTV.ipa Payload
+          ls -lh MoovoTV.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MoovoTV-ipa
+          path: .ipa/MoovoTV.ipa
+          retention-days: 30

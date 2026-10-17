@@ -38,3 +38,8 @@ local.properties
 # Outils perso
 .claude/
 graphify-out/
+
+# Compilation iOS (CI)
+.ios-build
+.ipa
+xcodebuild.log

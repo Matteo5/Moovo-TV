@@ -16,6 +16,9 @@ class MainViewController: CAPBridgeViewController {
     }
 
     override func capacitorDidLoad() {
+        // Lecteur VLC intégré et fonctions natives (registerPlugin(MoovoNativePlugin.class) côté Android)
+        bridge?.registerPluginInstance(MoovoNativePlugin())
+
         // Lecture vidéo : l'écran ne doit pas se mettre en veille
         UIApplication.shared.isIdleTimerDisabled = true
     }
