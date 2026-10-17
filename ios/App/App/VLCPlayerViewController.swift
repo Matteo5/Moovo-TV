@@ -380,7 +380,7 @@ final class VLCPlayerViewController: UIViewController {
             DispatchQueue.main.async { _ = (mediaPlayer, drawable) }
         }
 
-        let finish = { [onClose] in onClose?(position, duration) }
+        let finish: () -> Void = { [onClose] in onClose?(position, duration) }
         if presentingViewController != nil {
             dismiss(animated: true, completion: finish)
         } else {
