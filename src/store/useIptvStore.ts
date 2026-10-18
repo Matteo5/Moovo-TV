@@ -29,6 +29,7 @@ import { cleanMediaTitle } from '../services/tmdbService'
 import { fileStore } from '../services/fileStore'
 import { getPlaybackPrefs } from '../services/playbackPrefs'
 import { hasExternalPlayers, nativePlatform, needsExternalPlayerOnIos, openInExternalPlayer, playInNativePlayer } from '../native'
+import { checkStream } from '../services/streamCheck'
 
 const LOCAL_FILE_PREFIX = 'file:'
 const RESUME_KEY = 'iptv_vod_resume_points'
@@ -791,16 +792,23 @@ export const useIptvStore = create<IptvState>((set, get) => {
       // iPhone : lecteur VLC intégré (tous formats, pistes audio et sous-titres), reprise enregistrée à la fermeture
       if (nativePlatform === 'ios' && preferred === 'internal' && !options.forceInternal && !options.skipNativePlayer) {
         set({ vodDetail: null })
-        void playInNativePlayer(streamUrl, title, resumeFrom).then((result) => {
-          if (!result) {
-            // Appli compilée sans le lecteur natif : ancien comportement
-            get().playVod(item, { ...options, skipNativePlayer: true })
+        // Fichier retiré chez le fournisseur : le lecteur de l'appli affiche le message clair au lieu de VLC
+        void checkStream(streamUrl).then((check) => {
+          if (check.gone) {
+            get().playVod(item, { ...options, skipNativePlayer: true, forceInternal: true })
             return
           }
-          const { position, duration } = result
-          if (duration <= 0 || position < 5) return
-          if (position > duration - 90 || position / duration > 0.95) get().clearResumePoint(vodId)
-          else get().saveResumePoint(vodId, position, duration)
+          void playInNativePlayer(streamUrl, title, resumeFrom).then((result) => {
+            if (!result) {
+              // Appli compilée sans le lecteur natif : ancien comportement
+              get().playVod(item, { ...options, skipNativePlayer: true })
+              return
+            }
+            const { position, duration } = result
+            if (duration <= 0 || position < 5) return
+            if (position > duration - 90 || position / duration > 0.95) get().clearResumePoint(vodId)
+            else get().saveResumePoint(vodId, position, duration)
+          })
         })
         return
       }

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
-import { ArrowLeft, Play, RotateCcw, Heart, Star, Clock, ExternalLink } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Play, RotateCcw, Heart, Star, Clock, ExternalLink } from 'lucide-react'
+import { unavailableNotice } from '../services/streamCheck'
 import { hasExternalPlayers, nativePlatform, openInExternalPlayer } from '../native'
 import { useIptvStore } from '../store/useIptvStore'
 import { useVodDetails } from '../hooks/useVodDetails'
@@ -35,6 +36,7 @@ const VodDetail: React.FC = () => {
     lastEpisode,
     vodResumePoints,
     directPlayable,
+    unavailable,
   } = useVodDetails(item)
 
   useBackHandler(true, closeVodDetail)
@@ -158,6 +160,13 @@ const VodDetail: React.FC = () => {
                 {isFavorite ? 'Dans ma liste' : 'Ma liste'}
               </Button>
             </div>
+
+            {unavailable && (
+              <p role="status" className="mt-5 flex max-w-2xl items-start gap-3 rounded-xl bg-onair/10 px-4 py-3 text-sm leading-relaxed text-paper ring-1 ring-onair/30">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-onair" />
+                {unavailableNotice(item.type, unavailable.status)}
+              </p>
+            )}
 
             {movieResume && movieResume.duration > 0 && directPlayable && (
               <ProgressLine value={(movieResume.currentTime / movieResume.duration) * 100} className="mt-5 h-1.5 max-w-sm" />

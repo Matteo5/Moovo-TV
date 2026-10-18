@@ -1,11 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react'
-import { Check, ChevronDown, Clock, ExternalLink, Play, Plus, RotateCcw, Star } from 'lucide-react'
+import { AlertTriangle, Check, ChevronDown, Clock, ExternalLink, Play, Plus, RotateCcw, Star } from 'lucide-react'
 import { useIptvStore } from '../store/useIptvStore'
 import type { SeriesEpisode, VodItem } from '../types/iptv'
 import { useVodDetails } from '../hooks/useVodDetails'
 import { useBackHandler } from '../hooks/useBackHandler'
 import { hasExternalPlayers, nativePlatform, openInExternalPlayer } from '../native'
 import { categoryLabel } from '../services/categoryService'
+import { unavailableNotice } from '../services/streamCheck'
 import { BrandMark } from '../ui/Brand'
 import { useVisibleVod } from '../hooks/useParentalFilter'
 import { topRated } from '../services/trendingService'
@@ -64,7 +65,7 @@ const MobileDetail: React.FC = () => {
   const playVod = useIptvStore((s) => s.playVod)
   const toggleFavorite = useIptvStore((s) => s.toggleFavorite)
   const isFavorite = useIptvStore((s) => s.favorites.includes(item.id))
-  const { details, seasons, season, setSeason, currentSeason, loading, episodesError, isXtreamSeries, movieResume, lastEpisode, vodResumePoints, directPlayable } =
+  const { details, seasons, season, setSeason, currentSeason, loading, episodesError, isXtreamSeries, movieResume, lastEpisode, vodResumePoints, directPlayable, unavailable } =
     useVodDetails(item)
   const [expanded, setExpanded] = useState(false)
   const catalog = useIptvStore((s) => (item.type === 'movie' ? s.vodMovies : s.vodSeries))
@@ -196,6 +197,12 @@ const MobileDetail: React.FC = () => {
               {canPlay ? 'Ma liste' : isFavorite ? 'Dans ma liste' : 'Ajouter à ma liste'}
             </button>
           </div>
+          {unavailable && (
+            <p role="status" className="mt-4 flex items-start gap-2.5 rounded-[0.95rem] bg-onair/10 px-3.5 py-3 text-[0.84rem] leading-snug text-paper ring-1 ring-onair/30">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-onair" />
+              {unavailableNotice(item.type, unavailable.status)}
+            </p>
+          )}
           {resumeAt > 0 && movieResume && movieResume.duration > 0 && directPlayable && (
             <div className="mt-3 flex items-center gap-3">
               <TrailProgress value={(movieResume.currentTime / movieResume.duration) * 100} className="flex-1" />

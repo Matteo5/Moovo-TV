@@ -3,6 +3,7 @@ import { useIptvStore } from '../store/useIptvStore'
 import type { SeriesEpisode, SeriesSeason, VodItem } from '../types/iptv'
 import { xtreamService } from '../services/xtreamService'
 import { tmdbService } from '../services/tmdbService'
+import { checkStream } from '../services/streamCheck'
 
 /**
  * Fiche d'un film ou d'une série : complète le titre avec les informations du fournisseur Xtream
@@ -64,6 +65,21 @@ export function useVodDetails(item: VodItem) {
     }
   }, [item, xtreamCreds, isXtreamSeries])
 
+  // Disponibilité chez le fournisseur : le film, ou le premier épisode de la série (beaucoup de fiches anciennes
+  // restent listées alors que leurs fichiers ont disparu du serveur)
+  const [unavailable, setUnavailable] = useState<{ status?: number } | null>(null)
+  const probeUrl = isXtreamSeries ? seasons?.[0]?.episodes[0]?.streamUrl : item.type === 'movie' ? item.streamUrl : undefined
+  useEffect(() => {
+    if (!probeUrl) return
+    let alive = true
+    void checkStream(probeUrl).then((check) => {
+      if (alive) setUnavailable(check.gone ? { status: check.status } : null)
+    })
+    return () => {
+      alive = false
+    }
+  }, [probeUrl])
+
   const movieResume = vodResumePoints[item.id]
   const currentSeason = seasons?.find((s) => s.season === season)
 
@@ -93,5 +109,7 @@ export function useVodDetails(item: VodItem) {
     lastEpisode,
     vodResumePoints,
     directPlayable: !isXtreamSeries && !!item.streamUrl,
+    /** Non nul quand le fournisseur ne sert plus le fichier (film) ou le premier épisode (série). */
+    unavailable,
   }
 }

@@ -2,6 +2,7 @@ import type Hls from 'hls.js'
 import type { TsPlayerSession } from '../services/tsTransmuxer'
 import { isNativeApp } from '../native'
 import { getPlaybackPrefs, hlsBufferConfig, languageMatches, languageName } from '../services/playbackPrefs'
+import { checkStream, goneMessage } from '../services/streamCheck'
 
 /**
  * Moteur de lecture Moovo-TV.
@@ -313,7 +314,22 @@ export function startPlayback(
   }
   video.textTracks.addEventListener?.('addtrack', applyNativeTextDefaults)
 
-  next()
+  // Film ou épisode : on vérifie d'abord que le fournisseur sert encore le fichier,
+  // plutôt que d'enchaîner les tentatives (15 s chacune) sur un fichier disparu
+  if (!source.isLive) {
+    callbacks.onAttempt('Vérification du fichier')
+    void checkStream(source.url, source.proxyQuery).then((check) => {
+      if (destroyed) return
+      if (check.gone) {
+        callbacks.onBuffering(false)
+        callbacks.onFatal(goneMessage(check.status))
+        return
+      }
+      next()
+    })
+  } else {
+    next()
+  }
 
   const nativeTextTracks = () =>
     Array.from(video.textTracks).filter((t) => t.kind === 'subtitles' || t.kind === 'captions')
