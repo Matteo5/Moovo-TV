@@ -1,12 +1,13 @@
-import muxjs from 'mux.js'
+import mpegts from 'mpegts.js'
 
 export interface TsPlayerSession {
   destroy: () => void
 }
 
 /**
- * Transmuxe un flux MPEG-TS (.ts) en flux MP4 fragmenté (fMP4) à la volée
- * et l'injecte dans un élément vidéo via MediaSource Extensions (MSE)
+ * Lit un flux MPEG-TS (.ts) en direct via mpegts.js : démultiplexage, remultiplexage en MP4 fragmenté
+ * et injection dans l'élément vidéo par MediaSource Extensions (ManagedMediaSource sur iPhone, iOS 17.1+).
+ * L'ancien pipeline mux.js vidait le transmuxer à chaque morceau réseau : trous dans le tampon, image figée.
  */
 export function playTsWithMux(
   videoElement: HTMLVideoElement,
@@ -17,176 +18,56 @@ export function playTsWithMux(
     onWaiting?: () => void
   }
 ): TsPlayerSession {
-  let isDestroyed = false
-  let mediaSource: MediaSource | null = null
-  let sourceBuffer: SourceBuffer | null = null
-  let transmuxer: any = null
-  let abortController: AbortController | null = null
-  const queue: Uint8Array[] = []
-
-  const cleanup = () => {
-    isDestroyed = true
-    if (abortController) {
-      abortController.abort()
-      abortController = null
-    }
-    if (transmuxer) {
-      try {
-        transmuxer.dispose()
-      } catch {
-        // ignore
-      }
-      transmuxer = null
-    }
-    if (mediaSource && mediaSource.readyState === 'open') {
-      try {
-        mediaSource.endOfStream()
-      } catch {
-        // ignore
-      }
-    }
-  }
-
-  // MSE classique, ou ManagedMediaSource (iPhone, iOS 17.1+, seule variante disponible)
-  const MediaSourceCtor: typeof MediaSource | undefined =
-    window.MediaSource ?? (window as unknown as { ManagedMediaSource?: typeof MediaSource }).ManagedMediaSource
-  if (!MediaSourceCtor) {
+  if (!mpegts.getFeatureList().mseLivePlayback) {
     callbacks.onError?.(new Error('MediaSource n\'est pas supporté par ce navigateur.'))
-    return { destroy: cleanup }
+    return { destroy: () => {} }
   }
 
-  mediaSource = new MediaSourceCtor()
   // ManagedMediaSource n'accepte d'être attaché que si AirPlay est désactivé sur l'élément
-  if (MediaSourceCtor !== window.MediaSource) videoElement.disableRemotePlayback = true
-  const objectUrl = URL.createObjectURL(mediaSource)
-  videoElement.src = objectUrl
+  if (!window.MediaSource) videoElement.disableRemotePlayback = true
 
-  const appendNextChunk = () => {
-    if (isDestroyed || !sourceBuffer || sourceBuffer.updating || queue.length === 0) {
-      return
+  let destroyed = false
+  const player = mpegts.createPlayer(
+    { type: 'mpegts', isLive: true, url: tsUrl },
+    {
+      // Le worker ne passerait pas par le gestionnaire capacitor:// du proxy natif (iPhone)
+      enableWorker: false,
+      lazyLoad: false,
+      // Direct sans fin : on libère ce qui est déjà vu pour ne pas saturer le quota MSE
+      autoCleanupSourceBuffer: true,
+      autoCleanupMaxBackwardDuration: 60,
+      autoCleanupMinBackwardDuration: 30,
+      // Saute les petits trous de l'horodatage du fournisseur
+      fixAudioTimestampGap: true,
     }
-    // Direct sans fin : on libère ce qui est déjà vu pour ne pas saturer le quota MSE
-    const buffered = sourceBuffer.buffered
-    const now = videoElement.currentTime
-    if (buffered.length > 0 && now - buffered.start(0) > 90) {
-      try {
-        sourceBuffer.remove(buffered.start(0), now - 30)
-        return // « updateend » relancera l'ajout
-      } catch {
-        // Suppression refusée : on continue d'ajouter.
-      }
-    }
-    try {
-      const next = queue.shift()
-      if (next) {
-        sourceBuffer.appendBuffer(next as any)
-      }
-    } catch (e) {
-      console.warn('Erreur appendBuffer MSE:', e)
-    }
-  }
+  )
 
-  mediaSource.addEventListener('sourceopen', async () => {
-    if (isDestroyed || !mediaSource) return
-
-    try {
-      // Configuration du transmuxer mux.js
-      transmuxer = new muxjs.mp4.Transmuxer({
-        remux: true,
-      })
-
-      transmuxer.on('data', (segment: { init: Uint8Array; data: Uint8Array }) => {
-        if (isDestroyed || !mediaSource) return
-
-        if (!sourceBuffer) {
-          try {
-            const mimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
-            if (MediaSourceCtor.isTypeSupported(mimeType)) {
-              sourceBuffer = mediaSource.addSourceBuffer(mimeType)
-            } else {
-              sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640029, mp4a.40.2"')
-            }
-
-            sourceBuffer.mode = 'sequence'
-
-            sourceBuffer.addEventListener('updateend', () => {
-              appendNextChunk()
-            })
-
-            sourceBuffer.addEventListener('error', (ev) => {
-              console.warn('Erreur SourceBuffer:', ev)
-            })
-
-            if (segment.init) {
-              queue.push(segment.init)
-            }
-          } catch (sbErr) {
-            console.error('Impossible de créer SourceBuffer:', sbErr)
-            callbacks.onError?.(sbErr instanceof Error ? sbErr : new Error(String(sbErr)))
-            return
-          }
-        }
-
-        if (segment.data) {
-          queue.push(segment.data)
-          appendNextChunk()
-        }
-      })
-
-      abortController = new AbortController()
-      callbacks.onWaiting?.()
-
-      // Tentative de fetch avec gestion CORS
-      let streamResponse: Response | null = null
-
-      try {
-        console.log('[TS Player] Tentative de lecture directe :', tsUrl)
-        streamResponse = await fetch(tsUrl, {
-          signal: abortController.signal,
-          headers: {
-            Accept: 'video/mp2t, video/*, */*',
-          },
-        })
-      } catch (directErr) {
-        console.warn('[TS Player] Échec direct, tentative via proxy CORS :', directErr)
-        const proxiedTs = `/api/proxy?url=${encodeURIComponent(tsUrl)}`
-        streamResponse = await fetch(proxiedTs, {
-          signal: abortController.signal,
-          headers: {
-            Accept: 'video/mp2t, video/*, */*',
-          },
-        })
-      }
-
-      if (!streamResponse || !streamResponse.ok || !streamResponse.body) {
-        throw new Error(`Flux TS inaccessible (Code ${streamResponse?.status || 'réseau'}).`)
-      }
-
-      callbacks.onReady?.()
-      videoElement.play().catch(() => {})
-
-      const reader = streamResponse.body.getReader()
-
-      while (!isDestroyed) {
-        const { done, value } = await reader.read()
-        if (done) break
-        if (value && transmuxer) {
-          transmuxer.push(value)
-          transmuxer.flush()
-        }
-      }
-    } catch (err: unknown) {
-      if (!isDestroyed) {
-        const message = err instanceof Error ? err.message : 'Erreur de flux TS'
-        callbacks.onError?.(new Error(message))
-      }
-    }
+  // mpegts.js peut signaler plusieurs erreurs d'affilée : une seule remonte (le moteur passe alors à la méthode suivante)
+  let failed = false
+  player.on(mpegts.Events.ERROR, (type: string, detail: string) => {
+    if (destroyed || failed) return
+    failed = true
+    callbacks.onError?.(new Error(`Flux TS illisible (${type} · ${detail}).`))
   })
+  player.on(mpegts.Events.MEDIA_INFO, () => {
+    if (!destroyed) callbacks.onReady?.()
+  })
+
+  callbacks.onWaiting?.()
+  player.attachMediaElement(videoElement)
+  player.load()
 
   return {
     destroy: () => {
-      cleanup()
-      URL.revokeObjectURL(objectUrl)
+      destroyed = true
+      try {
+        player.pause()
+        player.unload()
+        player.detachMediaElement()
+        player.destroy()
+      } catch {
+        // Déjà libéré
+      }
     },
   }
 }

@@ -44,7 +44,7 @@ const TabBar: React.FC<{ view: CurrentView; onSelect: (v: CurrentView) => void }
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-40"
+      className="fixed inset-x-3 bottom-[var(--m-tabbar-gap)] z-40"
     >
       <div className="m-bar relative grid h-[3.9rem] grid-cols-5 rounded-[1.95rem] p-1 ring-1 ring-white/10 shadow-[0_1.25rem_2.5rem_-0.75rem_rgb(0_0_0/0.85)]">
         <span

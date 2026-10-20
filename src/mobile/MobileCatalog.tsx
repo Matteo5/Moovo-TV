@@ -139,7 +139,7 @@ const MobileCatalog: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
 
   return (
     <div className="pb-[calc(var(--m-tabbar)+2rem)]">
-      <LargeTitle title={title} detail={`${items.length.toLocaleString('fr-FR')} ${noun} dans votre abonnement`} />
+      <LargeTitle title={title} detail={`${items.length.toLocaleString('fr-FR')} ${items.length > 1 ? noun : noun.slice(0, -1)} dans votre abonnement`} />
 
       <label className="relative mx-[var(--m-gutter)] mt-4 flex items-center">
         <Search className="pointer-events-none absolute left-3.5 size-[1.1rem] text-fog" />
@@ -210,7 +210,7 @@ const MobileCatalog: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
       <section className="mt-10">
         <div className="flex items-center justify-between gap-3 px-[var(--m-gutter)]">
           <h2 className="m-heading min-w-0 truncate text-[1.45rem]">
-            {browsing ? (category === 'ALL' ? `Tous les ${noun}` : categoryLabel(category)) : `Résultats`}
+            {browsing ? (category === 'ALL' ? `${type === 'movie' ? 'Tous les' : 'Toutes les'} ${noun}` : categoryLabel(category)) : `Résultats`}
             <span className="ml-2 align-middle font-mono text-[0.8rem] font-medium text-fog tabular">{filtered.length.toLocaleString('fr-FR')}</span>
           </h2>
           <div className="relative">

@@ -359,8 +359,10 @@ html[data-device="tv"] *::before {
    ───────────────────────────────────────────────────────────── */
 :root[data-device="mobile"] {
   --m-gutter: 1.25rem;
+  /* Écart entre la barre d'onglets flottante et le bas de l'écran : juste au-dessus de la barre d'accueil d'iOS */
+  --m-tabbar-gap: max(0.5rem, calc(env(safe-area-inset-bottom) - 1.25rem));
   /* Hauteur réservée à la barre d'onglets flottante */
-  --m-tabbar: calc(4.75rem + env(safe-area-inset-bottom));
+  --m-tabbar: calc(4.75rem + var(--m-tabbar-gap));
 }
 
 @layer components {

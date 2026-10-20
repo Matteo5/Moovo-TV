@@ -221,7 +221,7 @@ export const Onboarding: React.FC = () => {
           <section className="mt-14 border-t border-white/6 pt-10">
             <h2 className="font-wide text-lg font-bold">Pas d’abonnement sous la main ?</h2>
             <p className="mt-1 text-sm text-fog">Ces playlists publiques et gratuites (iptv-org) permettent d’essayer l’application.</p>
-            <div className="mt-5 grid gap-2">
+            <div className="mt-5 grid grid-cols-1 gap-2">
               {DEMO_PLAYLISTS.map((demo) => (
                 <button
                   key={demo.id}

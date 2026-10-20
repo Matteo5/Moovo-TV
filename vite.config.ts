@@ -37,7 +37,7 @@ export default defineConfig({
           groups: [
             { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
             { name: 'hls', test: /node_modules[\\/]hls\.js[\\/]/ },
-            { name: 'mux', test: /node_modules[\\/]mux\.js[\\/]/ },
+            { name: 'mpegts', test: /node_modules[\\/]mpegts\.js[\\/]/ },
           ],
         },
       },

@@ -126,7 +126,7 @@ const SettingsView: React.FC = () => {
             )}
             <Field
               label="Contenu"
-              value={`${s.channels.length.toLocaleString('fr-FR')} chaînes · ${s.vodMovies.length.toLocaleString('fr-FR')} films · ${s.vodSeries.length.toLocaleString('fr-FR')} séries`}
+              value={`${s.channels.length.toLocaleString('fr-FR')} chaîne${s.channels.length > 1 ? 's' : ''} · ${s.vodMovies.length.toLocaleString('fr-FR')} film${s.vodMovies.length > 1 ? 's' : ''} · ${s.vodSeries.length.toLocaleString('fr-FR')} série${s.vodSeries.length > 1 ? 's' : ''}`}
             />
           </dl>
           <div className="mt-6 flex flex-wrap gap-3">

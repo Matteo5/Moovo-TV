@@ -72,7 +72,8 @@ export class EpgService {
     epgUrl: string,
     preferredProxy: string = 'auto'
   ): Promise<{ totalPrograms: number; totalChannels: number }> {
-    console.log('[EPG XMLTV] Chargement du guide des programmes depuis :', epgUrl)
+    // Les adresses Xtream contiennent identifiant et mot de passe : jamais en clair dans la console
+    console.log('[EPG XMLTV] Chargement du guide des programmes depuis :', epgUrl.replace(/(username|password)=[^&]*/gi, '$1=…'))
 
     const { text } = await fetchWithCors(epgUrl, preferredProxy)
 

@@ -159,9 +159,9 @@ export const MobileHome: React.FC = () => {
   }, [channels, favorites, recentlyWatched])
 
   const stats = [
-    vodMovies.length ? `${vodMovies.length.toLocaleString('fr-FR')} films` : null,
-    vodSeries.length ? `${vodSeries.length.toLocaleString('fr-FR')} séries` : null,
-    channels.length ? `${channels.length.toLocaleString('fr-FR')} chaînes` : null,
+    vodMovies.length ? `${vodMovies.length.toLocaleString('fr-FR')} film${vodMovies.length > 1 ? 's' : ''}` : null,
+    vodSeries.length ? `${vodSeries.length.toLocaleString('fr-FR')} série${vodSeries.length > 1 ? 's' : ''}` : null,
+    channels.length ? `${channels.length.toLocaleString('fr-FR')} chaîne${channels.length > 1 ? 's' : ''}` : null,
   ].filter(Boolean)
 
   const hasVod = vodMovies.length + vodSeries.length > 0

@@ -8,8 +8,8 @@ import { checkStream, goneMessage } from '../services/streamCheck'
  * Moteur de lecture Moovo-TV.
  *
  * Essaie automatiquement, dans l'ordre, les méthodes de lecture adaptées au flux :
- *   HLS (hls.js) → MPEG-TS transmuxé (mux.js) → lecture native → mêmes méthodes via le proxy.
- * hls.js et mux.js ne sont téléchargés qu'au premier besoin.
+ *   HLS (hls.js) → MPEG-TS (mpegts.js) → lecture native → mêmes méthodes via le proxy.
+ * hls.js et mpegts.js ne sont téléchargés qu'au premier besoin.
  */
 
 export interface PlaybackSource {

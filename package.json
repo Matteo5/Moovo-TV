@@ -34,7 +34,7 @@
     "hls.js": "^1.7.3",
     "iptv-playlist-parser": "^0.15.2",
     "lucide-react": "^1.56.0",
-    "mux.js": "^6.3.0",
+    "mpegts.js": "^1.8.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3",

@@ -90,3 +90,13 @@ Objectif : installer l'application en APK sur Android TV (puis iOS).
 - **Bugs corrigés** : point de reprise perdu à la fermeture d'un film ; aller-retour infini entre deux flux miroirs en panne ; fausses chaînes séparatrices du fournisseur ; recherche lente sur gros catalogues ; grille d'affiches qui cessait de charger après un filtre ; guide vide si le bouquet choisi était masqué ; touches avalées par le lecteur sous la demande de code.
 - **Légèreté** : logos en WebP (≈120 Ko au lieu de 750 Ko), pas de flou lourd sur TV.
 - APK 1.3 construit (`release/Moovo-TV-1.3.apk`), **pas encore installé** sur la Fire Stick ; exe Windows 1.3 non reconstruit (à faire plus tard).
+
+## 20 octobre 2026 : iPhone, installation et lecteurs
+
+Appli installée sur iPhone 16 depuis un Mac (Xcode 27, signature « Personal Team », Bundle ID `tv.moovo.app`). Tests sur un faux serveur Xtream local (chaînes HLS et TS, films MP4 / MKV, série, guide).
+
+- **Directs MPEG-TS** : ne pouvaient jamais se lire (mux.js 6 fournit `initSegment`, le code lisait `init`) et, une fois corrigés, laissaient des trous dans le tampon (vidage du transmuxer à chaque morceau réseau, SourceBuffer en mode « sequence ») : image figée sur iPhone. Remplacé par **mpegts.js** (ManagedMediaSource sur iOS 17.1+) ; mux.js retiré.
+- **Lecteur VLC des films (iPhone)** : fin de fichier détectée (fermeture et point de reprise) ; nouvelles options (menu ⋯ : vitesse, format d'image mémorisé, décalage audio et sous-titres ; double-tap ±10 s et Ajuster / Remplir ; verrouillage de l'écran ; durée totale ou restante). Les appuis sont lus directement : la rotation forcée en paysage pivotait l'affichage sans pivoter les touchers, les commandes étaient inaccessibles ; le lecteur suit désormais l'orientation de l'iPhone.
+- **Interface iPhone** : page de connexion plus large que l'écran (grille des playlists publiques) ; barre d'onglets flottante abaissée juste au-dessus de la barre d'accueil ; accords « 1 série », « Toutes les séries ».
+- **Confidentialité** : identifiant et mot de passe masqués dans le journal de chargement du guide.
+- À noter : dans le simulateur iOS, la vidéo VLC reste figée (pas de décodeur VideoToolbox ni d'affichage OpenGL ES) ; tester les films MKV sur un vrai iPhone.
