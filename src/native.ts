@@ -1,4 +1,4 @@
-import { Capacitor, registerPlugin } from '@capacitor/core'
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import { handleBack, installBackListeners } from './hooks/useBackHandler'
 
 /**
@@ -48,14 +48,60 @@ function iosPlayerUrl(url: string, player: string): string {
   return `vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}`
 }
 
+export interface NativeVideoEvent {
+  type: 'state' | 'firstFrame' | 'tracks' | 'ended' | 'error'
+  time?: number
+  /** -1 : direct ou durée inconnue */
+  duration?: number
+  buffered?: number
+  playing?: boolean
+  paused?: boolean
+  buffering?: boolean
+  ended?: boolean
+  code?: string
+  message?: string
+  /** L'erreur survient après le début de la lecture */
+  played?: boolean
+}
+
+export interface NativeTrack {
+  id: number
+  label: string
+  lang: string
+  active: boolean
+}
+
 interface MoovoNativePlugin {
-  getDeviceInfo(): Promise<{ television: boolean }>
+  getDeviceInfo(): Promise<{ television: boolean; nativeVideo?: boolean; versionName?: string; versionCode?: number; model?: string; sdk?: number }>
   getInstalledPlayers(): Promise<{ packages: string[] }>
   openExternal(options: { url: string; package?: string; title?: string }): Promise<void>
   /** iPhone : lecteur VLC intégré, résout à sa fermeture. */
   playVideo(options: { url: string; title?: string; startAt?: number; nextTitle?: string }): Promise<{ position: number; duration: number; next?: boolean }>
+  /** Android : lecteur ExoPlayer sous la WebView (voir player/nativeVideo.ts). */
+  videoLoad(options: {
+    url: string
+    fallbackUrl?: string
+    live: boolean
+    startAt?: number
+    mac?: string
+    token?: string
+    audioLang?: string
+    subtitleLang?: string
+  }): Promise<void>
+  videoPlay(): Promise<void>
+  videoPause(): Promise<void>
+  videoSeek(options: { time: number }): Promise<void>
+  videoVolume(options: { volume: number; muted: boolean }): Promise<void>
+  videoResize(options: { mode: 'fit' | 'fill' | 'stretch' }): Promise<void>
+  videoSelectTrack(options: { kind: 'audio' | 'text'; id: number }): Promise<void>
+  videoTracks(): Promise<{ audio?: NativeTrack[]; subtitles?: NativeTrack[] }>
+  videoStop(): Promise<void>
+  addListener(event: 'videoEvent', listener: (event: NativeVideoEvent) => void): Promise<PluginListenerHandle>
+  /** Android : télécharge l'APK de la nouvelle version puis ouvre l'installateur (rejet NEED_PERMISSION possible). */
+  installUpdate(options: { url: string }): Promise<void>
+  addListener(event: 'updateProgress', listener: (event: { received: number; total: number }) => void): Promise<PluginListenerHandle>
 }
-const MoovoNative = registerPlugin<MoovoNativePlugin>('MoovoNative')
+export const MoovoNative = registerPlugin<MoovoNativePlugin>('MoovoNative')
 
 let television = false
 export function isNativeTelevision(): boolean {

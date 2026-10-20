@@ -103,3 +103,12 @@ Appli installée sur iPhone 16 depuis un Mac (Xcode 27, signature « Personal Te
 - **Lecteur VLC plus réactif** : un appui affiche les commandes sans attendre le double-tap ; progression rafraîchie 4 fois par seconde.
 - **Paysage sur iPhone** : barre d'onglets compacte et centrée, murs d'affiches et grilles qui tiennent dans la hauteur, marges et lecteur web qui évitent l'encoche (variante Tailwind `phone-landscape`).
 - À noter : dans le simulateur iOS, la vidéo VLC reste figée (pas de décodeur VideoToolbox ni d'affichage OpenGL ES) ; tester les films MKV sur un vrai iPhone.
+
+## 20 octobre 2026 (suite) : Android TV / Fire TV
+
+- **Lecteur natif ExoPlayer (Media3 1.9)** sous la WebView transparente, piloté par l'interface existante : HLS, TS en direct, MP4, MKV ; audio AC3 / DTS via le décodeur FFmpeg (Jellyfin). Reconnexion automatique d'un direct coupé, bascule .ts → HLS, repli sur hls.js / mpegts.js si le natif échoue. `FLAG_DETECT_ACCESS_UNITS` écarté : il figeait l'image après quelques images (constaté sur émulateur).
+- **Télécommande** : Haut / Bas zappent quand les commandes sont masquées (Fire TV n'a pas de CH+/−) ; OK sur une rubrique du menu entre dans la page.
+- **Mises à jour à distance** : `android/update.json` (GitHub) + APK sur Google Drive ; l'application propose l'installation au démarrage (`UpdatePrompt`, `MoovoNative.installUpdate`).
+- **APK 1.4 signé** avec une nouvelle clé (`~/Moovo-TV-signature/`, hors dépôt) : désinstaller une fois l'ancienne version 1.3.
+- Durées des films lisibles (« 1 h 52 min »).
+- Testé sur émulateur Android TV 14 (API 34) : connexion, direct, zapping, film MKV, mise à jour (jusqu'à l'autorisation d'installation).

@@ -70,8 +70,16 @@ const RailButton: React.FC<{ item: NavItem; active: boolean; onSelect: (v: Curre
       type="button"
       onClick={(e) => {
         onSelect(item.view)
-        // Clic souris : on replie le rail ; à la télécommande (detail = 0) il reste ouvert
-        if (e.detail > 0) e.currentTarget.blur()
+        if (e.detail > 0) {
+          // Clic souris : on replie le rail
+          e.currentTarget.blur()
+        } else {
+          // Télécommande : OK entre dans la page choisie (même déjà affichée), le menu se replie
+          const button = e.currentTarget
+          window.setTimeout(() => {
+            if (document.activeElement === button) focusFirstIn(document.querySelector('main') || document)
+          }, 260)
+        }
       }}
       aria-current={active ? 'page' : undefined}
       className={`relative flex h-12 w-full items-center gap-4 rounded-xl px-[1.15rem] text-left transition-colors ${
@@ -249,7 +257,8 @@ export const Shell: React.FC<{ device: DeviceMode }> = ({ device }) => {
     if (device !== 'tv') return
     const id = window.setTimeout(() => {
       const active = document.activeElement
-      if (!active || active === document.body) focusFirstIn(mainRef.current || document)
+      // Rubrique choisie avec OK : le focus quitte le menu (qui se replie) pour la page
+      if (!active || active === document.body || active.closest('.rail')) focusFirstIn(mainRef.current || document)
     }, 250)
     return () => window.clearTimeout(id)
   }, [currentView, device])

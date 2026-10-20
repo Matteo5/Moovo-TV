@@ -260,7 +260,9 @@ final class VLCPlayerViewController: UIViewController {
         func square(_ v: UIView, _ side: CGFloat) -> [NSLayoutConstraint] {
             [v.widthAnchor.constraint(equalToConstant: side), v.heightAnchor.constraint(equalToConstant: side)]
         }
-        NSLayoutConstraint.activate([
+        // Tableau typé puis complété pas à pas : en une seule expression, le compilateur Swift de la CI
+        // (Xcode 16) abandonnait (« unable to type-check this expression in reasonable time »)
+        var constraints: [NSLayoutConstraint] = [
             videoView.topAnchor.constraint(equalTo: view.topAnchor),
             videoView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             videoView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -318,9 +320,14 @@ final class VLCPlayerViewController: UIViewController {
             slider.trailingAnchor.constraint(equalTo: remainingLabel.leadingAnchor, constant: -12),
             slider.centerYAnchor.constraint(equalTo: elapsedLabel.centerYAnchor),
         ]
-            + [closeButton, audioButton, subtitleButton, optionsButton, lockButton].flatMap { square($0, 44) }
-            + square(unlockButton, 52)
-            + square(playButton, 72) + square(backButton, 64) + square(forwardButton, 64))
+        for button in [closeButton, audioButton, subtitleButton, optionsButton, lockButton] {
+            constraints += square(button, 44)
+        }
+        constraints += square(unlockButton, 52)
+        constraints += square(playButton, 72)
+        constraints += square(backButton, 64)
+        constraints += square(forwardButton, 64)
+        NSLayoutConstraint.activate(constraints)
         elapsedLabel.setContentHuggingPriority(.required, for: .horizontal)
         remainingLabel.setContentHuggingPriority(.required, for: .horizontal)
 

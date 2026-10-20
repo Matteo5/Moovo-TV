@@ -3,6 +3,8 @@ import { useIptvStore } from './store/useIptvStore'
 import { useDeviceMode } from './hooks/useDevice'
 import { useSpatialNavigation } from './hooks/useSpatialNavigation'
 import { SignalLoader } from './ui/Brand'
+import { UpdatePrompt } from './ui/UpdatePrompt'
+import { nativePlatform } from './native'
 
 const Shell = lazy(() => import('./app/Shell').then((m) => ({ default: m.Shell })))
 // Téléphone : interface tactile dédiée (« Le Mur de collections ») ; TV et ordinateur gardent la leur
@@ -45,6 +47,7 @@ export const App: React.FC = () => {
   return (
     <Suspense fallback={<SignalLoader title="Moovo TV" />}>
       {hasChannels ? device === 'mobile' ? <MobileShell /> : <Shell device={device} /> : <Onboarding />}
+      {nativePlatform === 'android' && <UpdatePrompt />}
     </Suspense>
   )
 }

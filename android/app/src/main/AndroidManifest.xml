@@ -21,6 +21,8 @@
         </intent>
     </queries>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Mises à jour : installation de la nouvelle version téléchargée depuis le lien de l'APK -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:allowBackup="true"

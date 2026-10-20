@@ -477,3 +477,24 @@ html[data-device="tv"] *::before {
     scroll-behavior: auto !important;
   }
 }
+
+/* Android : l'image est décodée par le lecteur natif (ExoPlayer) sous la WebView. Pendant la lecture, la page
+   devient transparente autour du lecteur, et le reste de l'application n'est plus dessiné (plus fluide sur TV). */
+html.native-video,
+html.native-video body {
+  background: transparent !important;
+}
+html.native-video body * {
+  visibility: hidden;
+}
+html.native-video [data-player-root],
+html.native-video [data-player-root] * {
+  visibility: visible;
+}
+html.native-video [data-player-root] {
+  background: transparent !important;
+}
+/* L'élément <video> reste pour recevoir les appuis, sans rien afficher */
+html.native-video [data-player-root] > video {
+  opacity: 0;
+}

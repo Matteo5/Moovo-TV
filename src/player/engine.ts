@@ -3,11 +3,13 @@ import type { TsPlayerSession } from '../services/tsTransmuxer'
 import { isNativeApp } from '../native'
 import { getPlaybackPrefs, hlsBufferConfig, languageMatches, languageName } from '../services/playbackPrefs'
 import { checkStream, goneMessage } from '../services/streamCheck'
+import { nativeVideoAvailable, startNativePlayback } from './nativeVideo'
 
 /**
  * Moteur de lecture Moovo-TV.
  *
  * Essaie automatiquement, dans l'ordre, les méthodes de lecture adaptées au flux :
+ *   Android : ExoPlayer natif d'abord (voir nativeVideo.ts).
  *   HLS (hls.js) → MPEG-TS (mpegts.js) → lecture native → mêmes méthodes via le proxy.
  * hls.js et mpegts.js ne sont téléchargés qu'au premier besoin.
  */
@@ -123,7 +125,37 @@ export function planAttempts(
   return attempts
 }
 
+/**
+ * Démarre la lecture. options.native : sur Android, décodage par ExoPlayer (sous la WebView) ;
+ * si le flux ne démarre pas en natif, les lecteurs web prennent le relais automatiquement.
+ */
 export function startPlayback(
+  video: HTMLVideoElement,
+  source: PlaybackSource,
+  callbacks: EngineCallbacks,
+  startAt = 0,
+  options: { native?: boolean } = {}
+): EngineSession {
+  if (!options.native || !nativeVideoAvailable) return startWebPlayback(video, source, callbacks, startAt)
+
+  let web: EngineSession | null = null
+  const native = startNativePlayback(video, source, callbacks, startAt, () => {
+    web = startWebPlayback(video, source, callbacks, startAt)
+  })
+  const current = () => web ?? native
+  return {
+    destroy: () => {
+      native.destroy()
+      web?.destroy()
+    },
+    retry: () => current().retry(),
+    getTracks: () => current().getTracks(),
+    setAudioTrack: (id) => current().setAudioTrack(id),
+    setSubtitleTrack: (id) => current().setSubtitleTrack(id),
+  }
+}
+
+function startWebPlayback(
   video: HTMLVideoElement,
   source: PlaybackSource,
   callbacks: EngineCallbacks,

@@ -249,7 +249,8 @@ const PlayerScreen: React.FC = () => {
           }
         },
       },
-      channel.resumeFrom || 0
+      channel.resumeFrom || 0,
+      { native: true }
       )
       sessionRef.current = session
     })
@@ -444,8 +445,14 @@ const PlayerScreen: React.FC = () => {
         return
       }
 
-      // Commandes masquées (comme TiviMate / Google TV) : une flèche réaffiche d'abord la barre
-      // d'infos et la progression ; on ne change jamais de chaîne par surprise.
+      // Commandes masquées (comme TiviMate) : Haut / Bas changent de chaîne (la télécommande Fire TV
+      // n'a pas de touches CH+ / CH−), Gauche ouvre la liste, OK et Droite affichent les commandes.
+      if (canZap && (key === 'ArrowUp' || key === 'ArrowDown')) {
+        handled()
+        if (key === 'ArrowUp') playNextChannel()
+        else playPreviousChannel()
+        return
+      }
       if (key === 'ArrowLeft' || key === 'ArrowRight') {
         handled()
         if (isLive) {
@@ -519,6 +526,7 @@ const PlayerScreen: React.FC = () => {
     <div
       ref={containerRef}
       data-nav-trap
+      data-player-root
       role="dialog"
       aria-label={`Lecture : ${channel.name}`}
       onPointerMove={(e) => e.pointerType === 'mouse' && revealControls()}

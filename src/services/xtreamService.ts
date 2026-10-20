@@ -91,6 +91,20 @@ function toNumber(value: unknown): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined
 }
 
+/** Durée du panel (« 01:52:30 » ou secondes) en « 1 h 52 min » ; « 45 min » ; « 30 s » pour un extrait. */
+function formatRuntime(seconds: unknown, text: unknown): string | undefined {
+  let total = toNumber(seconds)
+  if (!total && typeof text === 'string') {
+    const parts = text.split(':').map(Number)
+    if (parts.length >= 2 && parts.every((n) => Number.isFinite(n))) total = parts.reduce((acc, n) => acc * 60 + n, 0)
+  }
+  if (!total) return typeof text === 'string' && text ? text : undefined
+  const h = Math.floor(total / 3600)
+  const m = Math.round((total % 3600) / 60)
+  if (h > 0) return m > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${h} h`
+  return m > 0 ? `${m} min` : `${Math.round(total)} s`
+}
+
 /** Horodatage Unix du panel (secondes, parfois en texte) vers des millisecondes. */
 function toTimestamp(value: unknown): number | undefined {
   const n = toNumber(value)
@@ -273,7 +287,7 @@ export const xtreamService = {
         year: (info.releasedate || info.release_date || '').slice(0, 4) || undefined,
         backdrop: backdrop || undefined,
         logo: info.movie_image || info.cover_big || undefined,
-        runtime: info.duration || undefined,
+        runtime: formatRuntime(info.duration_secs, info.duration),
       }
     } catch {
       return {}

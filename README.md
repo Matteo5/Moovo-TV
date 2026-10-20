@@ -107,6 +107,14 @@ L'APK est généré dans `android/app/build/outputs/apk/debug/app-debug.apk`. Il
 2. Copier l'APK sur une clé USB et l'ouvrir avec un gestionnaire de fichiers, ou l'envoyer avec l'application « Downloader » / « Send Files to TV ».
 3. Ou en ligne de commande : `adb connect <ip-de-la-tv>` puis `adb install -r app-debug.apk`.
 
+**Lecteur natif (ExoPlayer / Media3)** : sur Android, la vidéo est décodée par le matériel de la TV (`NativeVideo.java`), sous la WebView devenue transparente ; l'interface du lecteur reste celle de l'application (`src/player/nativeVideo.ts` relaie temps, pause, volume, pistes). HLS, MPEG-TS en direct (reconnexion automatique, bascule .ts → HLS), MP4, MKV, HEVC ; audio AC3 / E-AC3 / DTS par le décodeur FFmpeg. Si un flux ne démarre pas en natif, hls.js / mpegts.js prennent le relais. À la télécommande, commandes masquées : Haut / Bas changent de chaîne, Gauche ouvre la liste, OK affiche les commandes.
+
+**Version publiée et mises à jour** (APK signé, pour Downloader / Google Drive)
+1. Clé de signature : `~/Moovo-TV-signature/` (hors dépôt, **à sauvegarder** : sans elle, impossible de publier une mise à jour installable par-dessus). Copier `keystore.properties` dans `android/`.
+2. Augmenter `versionCode` / `versionName` dans `android/app/build.gradle`, puis `npm run build && npx cap sync android && cd android && ./gradlew assembleRelease` → `android/app/build/outputs/apk/release/app-release.apk`.
+3. Remplacer le fichier sur Google Drive (clic droit › Gérer les versions › Importer une nouvelle version : le lien reste le même), partage « Tous les utilisateurs disposant du lien ».
+4. Mettre à jour `android/update.json` (même `versionCode`, `apkUrl` = lien de partage Drive) et pousser sur GitHub : au démarrage suivant, chaque TV propose « Installer » (téléchargement puis installateur d'Android ; la première fois, Android demande d'autoriser Moovo TV à installer des applications).
+
 Spécificités natives : apparition dans le lanceur TV (bannière), mode téléviseur détecté par le système, bouton Retour de la télécommande (calques → accueil → double appui pour quitter), écran maintenu allumé, plein écran sans barres système sur TV.
 
 Limite connue : la WebView Android ne transmet pas le corps des requêtes POST interceptées ; l'envoi de la synchronisation réseau local n'est donc disponible que depuis le navigateur (la récupération au démarrage fonctionne).
