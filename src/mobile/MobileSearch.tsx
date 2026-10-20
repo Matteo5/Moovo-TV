@@ -107,7 +107,7 @@ const MobileSearch: React.FC = () => {
           {genres.movies.length > 0 && (
             <section>
               <SectionTitle title="Genres de films" />
-              <div className="mt-3 grid grid-cols-2 gap-2.5 px-[var(--m-gutter)]">
+              <div className="mt-3 grid grid-cols-2 gap-2.5 px-[var(--m-gutter)] phone-landscape:grid-cols-4">
                 {genres.movies.map(([cat, n]) => (
                   <GenreTile key={cat} label={categoryLabel(cat)} count={n} onOpen={() => goToCatalog('movie', cat)} />
                 ))}
@@ -117,7 +117,7 @@ const MobileSearch: React.FC = () => {
           {genres.series.length > 0 && (
             <section>
               <SectionTitle title="Genres de séries" />
-              <div className="mt-3 grid grid-cols-2 gap-2.5 px-[var(--m-gutter)]">
+              <div className="mt-3 grid grid-cols-2 gap-2.5 px-[var(--m-gutter)] phone-landscape:grid-cols-4">
                 {genres.series.map(([cat, n]) => (
                   <GenreTile key={cat} label={categoryLabel(cat)} count={n} onOpen={() => goToCatalog('series', cat)} />
                 ))}

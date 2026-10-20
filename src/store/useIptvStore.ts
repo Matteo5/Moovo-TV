@@ -11,6 +11,7 @@ import type {
   VodItem,
   VodResumePoint,
   SeriesEpisode,
+  SeriesSeason,
   DeviceModePreference,
   BackupData,
 } from '../types/iptv'
@@ -32,6 +33,36 @@ import { hasExternalPlayers, nativePlatform, needsExternalPlayerOnIos, openInExt
 import { checkStream } from '../services/streamCheck'
 
 const LOCAL_FILE_PREFIX = 'file:'
+
+// Saisons déjà chargées par série (enchaînement des épisodes sans recharger la liste)
+const seasonsCache = new Map<string, SeriesSeason[]>()
+
+/** Épisode qui suit dans l'ordre saison / numéro, ou null pour le dernier. */
+function findNextEpisode(seasons: SeriesSeason[], episode: SeriesEpisode): SeriesEpisode | null {
+  const all = seasons.flatMap((s) => s.episodes)
+  const index = all.findIndex((e) => e.id === episode.id)
+  return index >= 0 ? all[index + 1] ?? null : null
+}
+
+/** Épisode suivant d'une série Xtream (liste des saisons chargée une fois puis gardée en mémoire). */
+async function loadNextEpisode(item: VodItem, episode: SeriesEpisode): Promise<SeriesEpisode | null> {
+  let seasons = seasonsCache.get(item.id)
+  const creds = useIptvStore.getState().xtreamCreds
+  if (!seasons && creds && item.id.startsWith('series_')) {
+    try {
+      seasons = (await xtreamService.getSeriesInfo(creds, item.streamId)).seasons
+      seasonsCache.set(item.id, seasons)
+    } catch {
+      return null
+    }
+  }
+  return seasons ? findNextEpisode(seasons, episode) : null
+}
+
+/** Titre court d'un épisode : « S01 · É02 — Titre ». */
+export function episodeLabel(episode: SeriesEpisode): string {
+  return `S${String(episode.season).padStart(2, '0')} · É${String(episode.episodeNum).padStart(2, '0')} — ${episode.title}`
+}
 const RESUME_KEY = 'iptv_vod_resume_points'
 const SYNC_URL_KEY = 'iptv_local_sync_url'
 
@@ -118,6 +149,10 @@ interface IptvState {
     item: VodItem,
     options?: { episode?: SeriesEpisode; fromStart?: boolean; forceInternal?: boolean; skipNativePlayer?: boolean }
   ) => void
+  /** Série en cours de lecture et épisode suivant, pour l'enchaînement automatique */
+  episodeContext: { item: VodItem; episode: SeriesEpisode; next: SeriesEpisode | null } | null
+  rememberSeasons: (item: VodItem, seasons: SeriesSeason[]) => void
+  playNextEpisode: () => void
   playChannelNumber: (num: number) => boolean
   playNextChannel: () => void
   playPreviousChannel: () => void
@@ -333,6 +368,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
     accentColor: storageService.getAccentColor(),
     deviceModePreference: storageService.getDeviceModePreference(),
     vodDetail: null,
+    episodeContext: null,
 
     initialize: async () => {
       const savedMode = storageService.getConnectionMode()
@@ -789,25 +825,36 @@ export const useIptvStore = create<IptvState>((set, get) => {
       const preferred = getPlaybackPrefs().externalPlayer
       const resumeFrom = !fromStart && resume && resume.currentTime > 10 ? resume.currentTime : 0
 
+      // Épisode : on retient la série et l'épisode suivant pour l'enchaînement automatique
+      const nextEpisodeReady = episode ? loadNextEpisode(item, episode) : Promise.resolve(null)
+      set({ episodeContext: episode ? { item, episode, next: null } : null })
+      void nextEpisodeReady.then((next) => {
+        const ctx = get().episodeContext
+        if (ctx && ctx.episode.id === episode?.id) set({ episodeContext: { ...ctx, next } })
+      })
+
       // iPhone : lecteur VLC intégré (tous formats, pistes audio et sous-titres), reprise enregistrée à la fermeture
       if (nativePlatform === 'ios' && preferred === 'internal' && !options.forceInternal && !options.skipNativePlayer) {
         set({ vodDetail: null })
         // Fichier retiré chez le fournisseur : le lecteur de l'appli affiche le message clair au lieu de VLC
-        void checkStream(streamUrl).then((check) => {
+        void Promise.all([checkStream(streamUrl), nextEpisodeReady]).then(([check, next]) => {
           if (check.gone) {
             get().playVod(item, { ...options, skipNativePlayer: true, forceInternal: true })
             return
           }
-          void playInNativePlayer(streamUrl, title, resumeFrom).then((result) => {
+          void playInNativePlayer(streamUrl, title, resumeFrom, next ? episodeLabel(next) : undefined).then((result) => {
             if (!result) {
               // Appli compilée sans le lecteur natif : ancien comportement
               get().playVod(item, { ...options, skipNativePlayer: true })
               return
             }
             const { position, duration } = result
-            if (duration <= 0 || position < 5) return
-            if (position > duration - 90 || position / duration > 0.95) get().clearResumePoint(vodId)
-            else get().saveResumePoint(vodId, position, duration)
+            if (duration > 0 && position >= 5) {
+              if (result.next || position > duration - 90 || position / duration > 0.95) get().clearResumePoint(vodId)
+              else get().saveResumePoint(vodId, position, duration)
+            }
+            // Fin de l'épisode ou « Épisode suivant » touché dans le lecteur
+            if (result.next && next) get().playVod(item, { episode: next, fromStart: true })
           })
         })
         return
@@ -840,6 +887,15 @@ export const useIptvStore = create<IptvState>((set, get) => {
           resumeFrom,
         },
       })
+    },
+
+    rememberSeasons: (item, seasons) => {
+      seasonsCache.set(item.id, seasons)
+    },
+
+    playNextEpisode: () => {
+      const ctx = get().episodeContext
+      if (ctx?.next) get().playVod(ctx.item, { episode: ctx.next, fromStart: true })
     },
 
     playChannelNumber: (num) => {

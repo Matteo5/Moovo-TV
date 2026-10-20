@@ -11,7 +11,7 @@ import VLCKitLink
  */
 final class VLCPlayerViewController: UIViewController {
 
-    var onClose: ((_ position: Double, _ duration: Double) -> Void)?
+    var onClose: ((_ position: Double, _ duration: Double, _ next: Bool) -> Void)?
 
     private enum AspectMode: String, CaseIterable {
         case fit, fill, wide, classic
@@ -33,6 +33,8 @@ final class VLCPlayerViewController: UIViewController {
     private let url: URL
     private let titleText: String
     private let startAt: Double
+    /** Épisode suivant (« S01 · É02 — Titre ») proposé en fin de lecture, nil pour un film */
+    private let nextTitle: String?
 
     private let player = VLCMediaPlayer()
     private let videoView = UIView()
@@ -52,6 +54,8 @@ final class VLCPlayerViewController: UIViewController {
     private let remainingLabel = UILabel()
     private let hudLabel = PaddedLabel()
     private let spinner = UIActivityIndicatorView(style: .large)
+    private let nextCard = UIView()
+    private let nextButton = UIButton(type: .system)
 
     private var timer: Timer?
     private var hideWork: DispatchWorkItem?
@@ -63,7 +67,9 @@ final class VLCPlayerViewController: UIViewController {
     private var closed = false
     private var errorShown = false
     private var didPlay = false
-    private var pendingTap: DispatchWorkItem?
+    private var hiddenBeforeTap = true
+    private var nextDismissed = false
+    private var shownPlayIcon: String?
     private var touchStart: (point: CGPoint, time: CFTimeInterval)?
     private var lastTapTime: CFTimeInterval = 0
     private static let doubleTapDelay: CFTimeInterval = 0.3
@@ -71,10 +77,11 @@ final class VLCPlayerViewController: UIViewController {
     private var showTotal = false
     private var aspect: AspectMode = AspectMode(rawValue: UserDefaults.standard.string(forKey: VLCPlayerViewController.aspectKey) ?? "") ?? .fit
 
-    init(url: URL, title: String, startAt: Double) {
+    init(url: URL, title: String, startAt: Double, nextTitle: String? = nil) {
         self.url = url
         self.titleText = title
         self.startAt = startAt
+        self.nextTitle = nextTitle
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
         modalTransitionStyle = .crossDissolve
@@ -108,7 +115,7 @@ final class VLCPlayerViewController: UIViewController {
         player.media = media
         player.play()
 
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             self?.tick()
         }
         showControls()
@@ -229,6 +236,8 @@ final class VLCPlayerViewController: UIViewController {
         // Toucher le temps restant affiche la durée totale (et inversement)
         remainingLabel.isUserInteractionEnabled = true
         remainingLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(toggleTimeDisplay)))
+
+        buildNextCard()
 
         hudLabel.translatesAutoresizingMaskIntoConstraints = false
         hudLabel.textColor = .white
@@ -388,14 +397,18 @@ final class VLCPlayerViewController: UIViewController {
             updateLabels(current: lastTime)
         }
         let icon = player.isPlaying ? "pause.fill" : "play.fill"
-        playButton.setImage(UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 44, weight: .semibold)), for: .normal)
+        if icon != shownPlayIcon {
+            shownPlayIcon = icon
+            playButton.setImage(UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 44, weight: .semibold)), for: .normal)
+        }
+        updateNextCard()
 
         switch player.state {
         case .ended:
-            close()
+            close(next: wantsNext)
         case .stopped where didPlay && lastLength > 0 && lastTime >= lastLength - 3:
             // Fin du fichier vue en « stopped » (l'état « ended » peut passer entre deux relevés) : uniquement près de la fin
-            close()
+            close(next: wantsNext)
         case .error:
             showError()
         default:
@@ -457,25 +470,22 @@ final class VLCPlayerViewController: UIViewController {
         updateLabels(current: lastTime)
     }
 
-    /** Simple appui = afficher / masquer les commandes ; deux appuis rapprochés = double-tap. */
+    /** Appui = afficher / masquer les commandes ; deux appuis rapprochés = double-tap (±10 s, format). */
     private func handleTap(at location: CGPoint) {
         // Écran verrouillé : le cadenas apparaît tout de suite, sans attendre un éventuel double-tap
         if locked { return flashUnlockButton() }
         let now = CACurrentMediaTime()
-        if let pending = pendingTap, now - lastTapTime < Self.doubleTapDelay {
-            pending.cancel()
-            pendingTap = nil
+        if now - lastTapTime < Self.doubleTapDelay {
             lastTapTime = 0
+            // Double-tap : les commandes reviennent à leur état d'avant le premier appui
+            if hiddenBeforeTap { hideControls() } else { showControls() }
             handleDoubleTap(at: location)
             return
         }
+        // Premier appui traité tout de suite (pas d'attente du double-tap) : réponse immédiate
         lastTapTime = now
-        let work = DispatchWorkItem { [weak self] in
-            self?.pendingTap = nil
-            self?.toggleControls()
-        }
-        pendingTap = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.doubleTapDelay, execute: work)
+        hiddenBeforeTap = overlay.isHidden || overlay.alpha < 1
+        toggleControls()
     }
 
     private func handleDoubleTap(at location: CGPoint) {
@@ -513,6 +523,95 @@ final class VLCPlayerViewController: UIViewController {
         lastTime = Double(slider.value) * lastLength
         scrubbing = false
         scheduleHide()
+    }
+
+    // MARK: - Épisode suivant
+
+    /** L'épisode suivant démarrera à la fin, sauf si la carte a été masquée. */
+    private var wantsNext: Bool { nextTitle != nil && !nextDismissed }
+
+    private func buildNextCard() {
+        nextCard.translatesAutoresizingMaskIntoConstraints = false
+        nextCard.backgroundColor = UIColor(white: 0.08, alpha: 0.88)
+        nextCard.layer.cornerRadius = 16
+        nextCard.layer.borderWidth = 1
+        nextCard.layer.borderColor = UIColor.white.withAlphaComponent(0.12).cgColor
+        nextCard.isHidden = true
+        nextCard.alpha = 0
+        view.addSubview(nextCard)
+
+        let caption = UILabel()
+        caption.text = "Épisode suivant"
+        caption.font = .systemFont(ofSize: 12, weight: .semibold)
+        caption.textColor = UIColor.white.withAlphaComponent(0.65)
+
+        let name = UILabel()
+        name.text = nextTitle
+        name.font = .systemFont(ofSize: 15, weight: .semibold)
+        name.textColor = .white
+        name.numberOfLines = 2
+
+        var play = UIButton.Configuration.filled()
+        play.baseBackgroundColor = .white
+        play.baseForegroundColor = .black
+        play.cornerStyle = .capsule
+        play.image = UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .bold))
+        play.imagePadding = 6
+        nextButton.configuration = play
+        nextButton.addTarget(self, action: #selector(nextTapped), for: .touchUpInside)
+
+        var hide = UIButton.Configuration.plain()
+        hide.baseForegroundColor = UIColor.white.withAlphaComponent(0.8)
+        hide.title = "Masquer"
+        let hideButton = UIButton(configuration: hide)
+        hideButton.addTarget(self, action: #selector(dismissNextTapped), for: .touchUpInside)
+
+        let buttons = UIStackView(arrangedSubviews: [nextButton, hideButton])
+        buttons.spacing = 8
+        let stack = UIStackView(arrangedSubviews: [caption, name, buttons])
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 6
+        stack.setCustomSpacing(12, after: name)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        nextCard.addSubview(stack)
+
+        let guide = view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: nextCard.topAnchor, constant: 14),
+            stack.bottomAnchor.constraint(equalTo: nextCard.bottomAnchor, constant: -12),
+            stack.leadingAnchor.constraint(equalTo: nextCard.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: nextCard.trailingAnchor, constant: -16),
+            nextCard.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -16),
+            nextCard.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -64),
+            nextCard.widthAnchor.constraint(lessThanOrEqualToConstant: 320),
+            nextCard.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: 16),
+        ])
+    }
+
+    /** Carte visible dans les 20 dernières secondes, avec le compte à rebours avant l'enchaînement. */
+    private func updateNextCard() {
+        let remaining = lastLength - lastTime
+        let visible = wantsNext && didPlay && lastLength > 30 && remaining <= 20
+        if visible {
+            var config = nextButton.configuration
+            config?.title = "Lire (\(max(1, Int(remaining.rounded(.up)))))"
+            nextButton.configuration = config
+        }
+        guard visible == nextCard.isHidden else { return }
+        if visible {
+            nextCard.isHidden = false
+            UIView.animate(withDuration: 0.25) { self.nextCard.alpha = 1 }
+        } else {
+            UIView.animate(withDuration: 0.2, animations: { self.nextCard.alpha = 0 }) { _ in self.nextCard.isHidden = true }
+        }
+    }
+
+    @objc private func nextTapped() { close(next: true) }
+
+    @objc private func dismissNextTapped() {
+        nextDismissed = true
+        updateNextCard()
     }
 
     // MARK: - Verrouillage
@@ -674,7 +773,7 @@ final class VLCPlayerViewController: UIViewController {
 
     // MARK: - Fermeture
 
-    private func close() {
+    private func close(next: Bool = false) {
         guard !closed else { return }
         closed = true
         timer?.invalidate()
@@ -692,7 +791,7 @@ final class VLCPlayerViewController: UIViewController {
             DispatchQueue.main.async { _ = (mediaPlayer, drawable) }
         }
 
-        let finish: () -> Void = { [onClose] in onClose?(position, duration) }
+        let finish: () -> Void = { [onClose] in onClose?(position, duration, next) }
         if presentingViewController != nil {
             dismiss(animated: true, completion: finish)
         } else {

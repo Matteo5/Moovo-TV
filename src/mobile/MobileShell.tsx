@@ -44,9 +44,9 @@ const TabBar: React.FC<{ view: CurrentView; onSelect: (v: CurrentView) => void }
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-3 bottom-[var(--m-tabbar-gap)] z-40"
+      className="fixed inset-x-[max(0.75rem,env(safe-area-inset-left),env(safe-area-inset-right))] bottom-[var(--m-tabbar-gap)] z-40 mx-auto phone-landscape:max-w-[32rem]"
     >
-      <div className="m-bar relative grid h-[3.9rem] grid-cols-5 rounded-[1.95rem] p-1 ring-1 ring-white/10 shadow-[0_1.25rem_2.5rem_-0.75rem_rgb(0_0_0/0.85)]">
+      <div className="m-bar relative grid h-[3.9rem] grid-cols-5 phone-landscape:h-[3.3rem] rounded-[1.95rem] p-1 ring-1 ring-white/10 shadow-[0_1.25rem_2.5rem_-0.75rem_rgb(0_0_0/0.85)]">
         <span
           aria-hidden="true"
           className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] rounded-[1.6rem] bg-white/[0.12] transition-transform duration-[420ms] ease-[var(--ease-snap)]"

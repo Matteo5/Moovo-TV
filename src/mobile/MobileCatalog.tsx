@@ -50,7 +50,7 @@ const ProgressiveGrid: React.FC<{ items: VodItem[]; progressOf: (item: VodItem) 
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-[var(--m-gutter)]">
+      <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-[var(--m-gutter)] phone-landscape:grid-cols-6">
         {items.slice(0, count).map((it) => (
           <Poster key={it.id} item={it} progress={progressOf(it)} className="w-full" />
         ))}

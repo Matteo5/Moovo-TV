@@ -21,7 +21,7 @@ import {
   Check,
   AlertTriangle,
 } from 'lucide-react'
-import { useIptvStore } from '../store/useIptvStore'
+import { episodeLabel, useIptvStore } from '../store/useIptvStore'
 import type { Channel, QualityVariant } from '../types/iptv'
 import { startPlayback, type EngineSession, type MediaTrack } from './engine'
 import { resolvePlaybackSource } from './source'
@@ -79,6 +79,9 @@ type VideoWithRemote = HTMLVideoElement & {
   webkitShowPlaybackTargetPicker?: () => void
 }
 
+/** Secondes avant de lancer l'épisode suivant en fin d'épisode */
+const NEXT_EPISODE_DELAY = 8
+
 const PlayerScreen: React.FC = () => {
   const channel = useIptvStore((s) => s.activeChannel)!
   const channels = useIptvStore((s) => s.channels)
@@ -90,6 +93,26 @@ const PlayerScreen: React.FC = () => {
   const playChannelNumber = useIptvStore((s) => s.playChannelNumber)
   const saveResumePoint = useIptvStore((s) => s.saveResumePoint)
   const clearResumePoint = useIptvStore((s) => s.clearResumePoint)
+  const episodeContext = useIptvStore((s) => s.episodeContext)
+  const playNextEpisode = useIptvStore((s) => s.playNextEpisode)
+  // Épisode suivant de la série en cours (enchaînement automatique en fin d'épisode)
+  const nextEpisode =
+    episodeContext && channel.vodId === `${episodeContext.item.id}_ep_${episodeContext.episode.id}` ? episodeContext.next : null
+  const [nextCountdown, setNextCountdown] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (nextCountdown === null) return
+    if (nextCountdown <= 0) {
+      setNextCountdown(null)
+      playNextEpisode()
+      return
+    }
+    const timer = window.setTimeout(() => setNextCountdown((n) => (n === null ? null : n - 1)), 1000)
+    return () => window.clearTimeout(timer)
+  }, [nextCountdown, playNextEpisode])
+
+  // Nouvel épisode ou nouvelle chaîne : pas de compte à rebours en cours
+  useEffect(() => setNextCountdown(null), [channel.id])
 
   const isLive = !channel.streamType || channel.streamType === 'live'
   const isReplay = channel.name.startsWith('[Replay]')
@@ -518,6 +541,7 @@ const PlayerScreen: React.FC = () => {
             revealControls()
           }
         }}
+        onEnded={() => nextEpisode && setNextCountdown(NEXT_EPISODE_DELAY)}
         onPlay={() => setPaused(false)}
         onPause={() => setPaused(true)}
         onTimeUpdate={(e) => {
@@ -560,7 +584,7 @@ const PlayerScreen: React.FC = () => {
 
       {/* OSD de zapping (visible même commandes masquées) */}
       {zapOsd && !showChrome && (
-        <div className="pointer-events-none absolute left-[var(--gutter)] top-[calc(var(--gutter)+env(safe-area-inset-top))] flex items-center gap-5 rounded-2xl bg-ink-950/75 py-4 pl-4 pr-7 ring-1 ring-white/10 backdrop-blur-xl animate-rise">
+        <div className="pointer-events-none absolute left-[max(var(--gutter),env(safe-area-inset-left))] top-[calc(var(--gutter)+env(safe-area-inset-top))] flex items-center gap-5 rounded-2xl bg-ink-950/75 py-4 pl-4 pr-7 ring-1 ring-white/10 backdrop-blur-xl animate-rise">
           <ChannelLogo logo={channel.logo} name={channel.name} className="size-14" />
           <div>
             {channel.number && <p className="font-mono text-3xl font-bold leading-none text-accent tabular">{String(channel.number).padStart(3, '0')}</p>}
@@ -571,7 +595,7 @@ const PlayerScreen: React.FC = () => {
 
       {/* Bandeau supérieur */}
       <div
-        className={`absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/90 via-black/50 to-transparent px-[var(--gutter)] pb-20 pt-[calc(var(--gutter)+env(safe-area-inset-top))] transition-opacity duration-300 ${
+        className={`absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/90 via-black/50 to-transparent pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))] pb-20 pt-[calc(var(--gutter)+env(safe-area-inset-top))] transition-opacity duration-300 ${
           showChrome ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
@@ -619,6 +643,27 @@ const PlayerScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Fin d'épisode : enchaînement automatique vers le suivant */}
+      {nextEpisode && nextCountdown !== null && (
+        <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+9.5rem)] right-[calc(env(safe-area-inset-right)+1.5rem)] z-40 w-[min(22rem,calc(100%-3rem))] rounded-2xl bg-ink-950/90 p-5 ring-1 ring-white/10 backdrop-blur-md animate-rise">
+          <p className="text-xs font-semibold text-mist">Épisode suivant</p>
+          <p className="mt-1 line-clamp-2 font-semibold">{episodeLabel(nextEpisode)}</p>
+          <div className="mt-4 flex items-center gap-2">
+            <button
+              type="button"
+              data-autofocus
+              onClick={() => { setNextCountdown(null); playNextEpisode() }}
+              className="flex items-center gap-2 rounded-full bg-paper px-4 py-2 text-sm font-semibold text-ink-950"
+            >
+              <Play className="size-4" /> Lire ({nextCountdown})
+            </button>
+            <button type="button" onClick={() => setNextCountdown(null)} className="rounded-full px-4 py-2 text-sm font-semibold text-mist hover:bg-white/10">
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Erreur */}
       {fatal && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/85 p-6 backdrop-blur-md">
@@ -645,7 +690,7 @@ const PlayerScreen: React.FC = () => {
 
       {/* Commandes */}
       <div
-        className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-[var(--gutter)] pb-[calc(var(--gutter)+env(safe-area-inset-bottom))] pt-24 transition-opacity duration-300 ${
+        className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))] pb-[calc(var(--gutter)+env(safe-area-inset-bottom))] pt-24 transition-opacity duration-300 ${
           showChrome && !fatal ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >

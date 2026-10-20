@@ -44,6 +44,7 @@ export function useVodDetails(item: VodItem) {
             if (cancelled) return
             merge(result.info)
             setSeasons(result.seasons)
+            useIptvStore.getState().rememberSeasons(item, result.seasons)
             setSeason(result.seasons[0]?.season ?? null)
           } catch {
             if (!cancelled) setEpisodesError('Impossible de récupérer la liste des épisodes. Réessayez dans un instant.')

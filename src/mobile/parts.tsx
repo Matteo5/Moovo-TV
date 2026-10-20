@@ -242,7 +242,7 @@ export const Wall: React.FC<{ entries: WallEntry[]; shape?: 'lead' | 'wide' | 'q
   if (!a) return null
   if (shape === 'wide' && d) {
     return (
-      <div className="grid grid-cols-3 gap-2.5 px-[var(--m-gutter)]">
+      <div className="grid grid-cols-3 gap-2.5 px-[var(--m-gutter)] phone-landscape:grid-cols-6">
         <WallTile {...a} size="wide" eager={eager} className="col-span-3 aspect-[16/9]" />
         {[b, c, d].map((e) => (
           <WallTile key={e.item.id} {...e} size="poster" eager={eager} className="aspect-[2/3]" />
@@ -252,7 +252,7 @@ export const Wall: React.FC<{ entries: WallEntry[]; shape?: 'lead' | 'wide' | 'q
   }
   if (shape === 'quad' && d) {
     return (
-      <div className="grid grid-cols-2 gap-2.5 px-[var(--m-gutter)]">
+      <div className="grid grid-cols-2 gap-2.5 px-[var(--m-gutter)] phone-landscape:grid-cols-4">
         {[a, b, c, d].map((e) => (
           <WallTile key={e.item.id} {...e} size="poster" eager={eager} className="aspect-[2/3]" />
         ))}
@@ -262,13 +262,13 @@ export const Wall: React.FC<{ entries: WallEntry[]; shape?: 'lead' | 'wide' | 'q
   if (!b) {
     return (
       <div className="px-[var(--m-gutter)]">
-        <WallTile {...a} size="lead" eager={eager} className="mx-auto aspect-[2/3] w-2/3" />
+        <WallTile {...a} size="lead" eager={eager} className="mx-auto aspect-[2/3] w-2/3 phone-landscape:w-1/4" />
       </div>
     )
   }
   // La grande affiche garde son format 2:3 : c'est elle qui donne la hauteur du mur, les deux images se la partagent
   return (
-    <div className={`grid grid-rows-2 gap-2.5 px-[var(--m-gutter)] ${flip ? 'grid-cols-[1fr_1.3fr]' : 'grid-cols-[1.3fr_1fr]'}`}>
+    <div className={`grid grid-rows-2 gap-2.5 px-[var(--m-gutter)] phone-landscape:mx-auto phone-landscape:max-w-[28rem] ${flip ? 'grid-cols-[1fr_1.3fr]' : 'grid-cols-[1.3fr_1fr]'}`}>
       <WallTile {...a} size="lead" eager={eager} className={`row-span-2 row-start-1 aspect-[2/3] ${flip ? 'col-start-2' : 'col-start-1'}`} />
       <WallTile {...b} size="small" eager={eager} className={`row-start-1 min-h-0 ${flip ? 'col-start-1' : 'col-start-2'}`} />
       {c && <WallTile {...c} size="small" eager={eager} className={`row-start-2 min-h-0 ${flip ? 'col-start-1' : 'col-start-2'}`} />}

@@ -15,6 +15,8 @@
 
 /* Variante tv: … active uniquement en mode téléviseur (html[data-device="tv"]) */
 @custom-variant tv (&:where([data-device="tv"] *));
+/* Téléphone tourné en paysage : peu de hauteur, l'encoche sur un côté */
+@custom-variant phone-landscape (@media (orientation: landscape) and (max-height: 500px));
 
 @theme {
   --font-display: "Montserrat Variable", "Segoe UI", system-ui, sans-serif;
@@ -358,11 +360,18 @@ html[data-device="tv"] *::before {
    et la traînée du M réservée aux rangs, à la progression et à la sélection.
    ───────────────────────────────────────────────────────────── */
 :root[data-device="mobile"] {
-  --m-gutter: 1.25rem;
+  /* Marge latérale : en paysage, l'encoche de l'iPhone passe sur un côté */
+  --m-gutter: max(1.25rem, env(safe-area-inset-left), env(safe-area-inset-right));
   /* Écart entre la barre d'onglets flottante et le bas de l'écran : juste au-dessus de la barre d'accueil d'iOS */
   --m-tabbar-gap: max(0.5rem, calc(env(safe-area-inset-bottom) - 1.25rem));
   /* Hauteur réservée à la barre d'onglets flottante */
   --m-tabbar: calc(4.75rem + var(--m-tabbar-gap));
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  :root[data-device="mobile"] {
+    --m-tabbar: calc(4rem + var(--m-tabbar-gap));
+  }
 }
 
 @layer components {
