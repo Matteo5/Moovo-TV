@@ -14,8 +14,8 @@ android {
         applicationId "tv.moovo.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 5
-        versionName "1.4"
+        versionCode 6
+        versionName "1.5"
         // Fire TV / Android TV : processeurs ARM uniquement (APK plus léger avec le décodeur FFmpeg)
         ndk { abiFilters "armeabi-v7a", "arm64-v8a" }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -37,6 +37,8 @@ android {
     }
     buildTypes {
         release {
+            // Diagnostic : ./gradlew assembleRelease -PmoovoDebug (version signée mais inspectable)
+            debuggable project.hasProperty("moovoDebug")
             if (keystorePropsFile.exists()) {
                 signingConfig signingConfigs.release
             }

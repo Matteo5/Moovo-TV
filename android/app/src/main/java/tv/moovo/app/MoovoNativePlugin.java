@@ -146,15 +146,61 @@ public class MoovoNativePlugin extends Plugin {
     }
 
     // ── Mises à jour (APK téléchargé depuis le lien publié, puis installateur d'Android) ──
+    // Événements « updateProgress » { received, total } pendant les téléchargements.
+
+    /** APK d'une version donnée, dans le cache de l'application (effacé par Android si la place manque). */
+    private java.io.File updateFile(int versionCode) {
+        return new java.io.File(new java.io.File(getContext().getCacheDir(), "updates"), "moovo-tv-" + versionCode + ".apk");
+    }
+
+    /** Télécharge l'APK dans un fichier temporaire, renommé seulement une fois complet. */
+    private java.io.File downloadUpdateFile(String url, int versionCode) throws java.io.IOException {
+        java.io.File apk = updateFile(versionCode);
+        java.io.File dir = apk.getParentFile();
+        if (apk.exists() && apk.length() > 0) return apk;
+        if (dir == null || (!dir.exists() && !dir.mkdirs())) throw new java.io.IOException("Dossier de téléchargement indisponible");
+        // Anciennes versions téléchargées : inutiles
+        java.io.File[] old = dir.listFiles();
+        if (old != null) for (java.io.File f : old) if (!f.equals(apk)) f.delete();
+        java.io.File part = new java.io.File(dir, apk.getName() + ".part");
+        download(url, part);
+        if (!part.renameTo(apk)) throw new java.io.IOException("Enregistrement de la mise à jour impossible");
+        return apk;
+    }
 
     /**
-     * Télécharge l'APK puis ouvre l'installateur. Événements « updateProgress » { received, total }.
-     * Rejet NEED_PERMISSION : Android exige d'autoriser Moovo TV à installer des applications ;
-     * l'écran de réglage correspondant est ouvert, il suffit de réessayer ensuite.
+     * Télécharge la mise à jour en arrière-plan, sans rien demander : l'installation ne demandera
+     * ensuite qu'une confirmation, sans attente.
+     */
+    @PluginMethod
+    public void prepareUpdate(PluginCall call) {
+        String url = call.getString("url");
+        int versionCode = call.getInt("versionCode", 0);
+        if (url == null || url.isEmpty() || versionCode <= 0) {
+            call.reject("Lien de mise à jour manquant");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                downloadUpdateFile(url, versionCode);
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("Téléchargement impossible : " + (e.getMessage() == null ? "erreur réseau" : e.getMessage()));
+            }
+        }).start();
+    }
+
+    /**
+     * Ouvre l'installateur d'Android sur l'APK (téléchargé au besoin). Même identifiant et même signature :
+     * Android remplace l'application en gardant ses données (connexion, favoris, réglages).
+     * Sans l'autorisation « Installer des applications inconnues », l'écran de réglage correspondant est ouvert,
+     * il suffit de réessayer ensuite.
      */
     @PluginMethod
     public void installUpdate(PluginCall call) {
         String url = call.getString("url");
+        // Versions de l'interface antérieures à prepareUpdate : pas de numéro, fichier à part
+        int versionCode = call.getInt("versionCode", 0);
         if (url == null || url.isEmpty()) {
             call.reject("Lien de mise à jour manquant");
             return;
@@ -172,11 +218,8 @@ public class MoovoNativePlugin extends Plugin {
             return;
         }
         new Thread(() -> {
-            java.io.File dir = new java.io.File(context.getCacheDir(), "updates");
-            java.io.File apk = new java.io.File(dir, "moovo-tv.apk");
             try {
-                if (!dir.exists() && !dir.mkdirs()) throw new java.io.IOException("Dossier de téléchargement indisponible");
-                download(url, apk);
+                java.io.File apk = downloadUpdateFile(url, versionCode);
                 Uri uri = androidx.core.content.FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", apk);
                 Intent install = new Intent(Intent.ACTION_VIEW);
                 install.setDataAndType(uri, "application/vnd.android.package-archive");
@@ -184,6 +227,8 @@ public class MoovoNativePlugin extends Plugin {
                 context.startActivity(install);
                 call.resolve();
             } catch (Exception e) {
+                // Fichier peut-être abîmé : on le retéléchargera à la prochaine tentative
+                updateFile(versionCode).delete();
                 call.reject("Téléchargement impossible : " + (e.getMessage() == null ? "erreur réseau" : e.getMessage()));
             }
         }).start();

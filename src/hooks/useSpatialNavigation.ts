@@ -92,13 +92,15 @@ function rankNeighbors(current: HTMLElement, candidates: HTMLElement[], dir: Dir
         secondary = aligned > 0 ? 0 : Math.abs(r.top + r.height / 2 - (c.top + c.height / 2))
         break
       case 'ArrowDown':
-        if (r.top < c.top + 4) continue
+        // Le centre doit être sous l'élément actif : un bloc un peu moins haut sur la même rangée
+        // (émission du guide glissée sous la colonne des chaînes) n'est pas « en dessous »
+        if (r.top < c.top + 4 || r.top + r.height / 2 < c.bottom - 4) continue
         primary = r.top - c.bottom
         aligned = overlap(c.left, c.right, r.left, r.right)
         secondary = aligned > 0 ? Math.abs(r.left - c.left) * 0.1 : Math.abs(r.left + r.width / 2 - (c.left + c.width / 2))
         break
       case 'ArrowUp':
-        if (r.bottom > c.bottom - 4) continue
+        if (r.bottom > c.bottom - 4 || r.top + r.height / 2 > c.top + 4) continue
         primary = c.top - r.bottom
         aligned = overlap(c.left, c.right, r.left, r.right)
         secondary = aligned > 0 ? Math.abs(r.left - c.left) * 0.1 : Math.abs(r.left + r.width / 2 - (c.left + c.width / 2))
@@ -265,6 +267,13 @@ export function useSpatialNavigation(enabled: boolean = true) {
       if (entry && !entry.contains(active)) {
         const current = entry.querySelector<HTMLElement>('[aria-current="page"], [aria-pressed="true"]')
         if (current) ranked = [current, ...ranked.filter((el) => el !== current)]
+      }
+      // Idem pour une rangée d'onglets : on arrive sur l'onglet ouvert (un onglet s'ouvre dès qu'il reçoit le focus,
+      // arriver sur son voisin changerait la page sous les yeux de l'utilisateur)
+      const tablist = ranked[0]?.closest<HTMLElement>('[role="tablist"]')
+      if (tablist && !tablist.contains(active)) {
+        const current = tablist.querySelector<HTMLElement>('[aria-selected="true"]')
+        if (current && reachable.includes(current)) ranked = [current, ...ranked.filter((el) => el !== current)]
       }
 
       for (const target of ranked.slice(0, 6)) {

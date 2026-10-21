@@ -4,6 +4,15 @@ import { useSyncExternalStore } from 'react'
  * Préférences de lecture (enregistrées sur l'appareil).
  */
 export type BufferProfile = 'short' | 'normal' | 'long'
+export type VodSort = 'source' | 'trending' | 'recent' | 'title' | 'rating'
+
+export const VOD_SORTS: { id: VodSort; label: string }[] = [
+  { id: 'source', label: 'Ordre du fournisseur' },
+  { id: 'trending', label: 'Tendances' },
+  { id: 'recent', label: 'Ajoutés récemment' },
+  { id: 'title', label: 'A → Z' },
+  { id: 'rating', label: 'Mieux notés' },
+]
 
 export interface PlaybackPrefs {
   /** Tampon : court = démarrage rapide, long = plus stable sur une connexion irrégulière. */
@@ -16,6 +25,8 @@ export interface PlaybackPrefs {
   externalPlayer: string
   /** Charge automatiquement le guide XMLTV du fournisseur Xtream. */
   autoProviderEpg: boolean
+  /** Tri des pages Films et Séries, retenu d'une ouverture de l'application à l'autre. */
+  vodSort: VodSort
 }
 
 const KEY = 'moovo_playback_prefs'
@@ -26,6 +37,7 @@ const DEFAULTS: PlaybackPrefs = {
   subtitleLang: 'off',
   externalPlayer: 'internal',
   autoProviderEpg: true,
+  vodSort: 'source',
 }
 
 function read(): PlaybackPrefs {

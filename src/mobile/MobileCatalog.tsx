@@ -8,8 +8,9 @@ import { categoryLabel } from '../services/categoryService'
 import { recentlyAdded, topRated } from '../services/trendingService'
 import { LargeTitle, Pills, Poster, SectionTitle, TopTen, Wall, useScrolledPast } from './parts'
 import { takePendingGenre } from './mobileNav'
+import { setPlaybackPrefs, usePlaybackPrefs, type VodSort } from '../services/playbackPrefs'
 
-type Sort = 'source' | 'trending' | 'recent' | 'title' | 'rating'
+type Sort = VodSort
 
 const SORT_LABELS: Record<Sort, string> = {
   source: 'Ordre du fournisseur',
@@ -67,7 +68,8 @@ const MobileCatalog: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
   const openVodDetail = useIptvStore((s) => s.openVodDetail)
   const [category, setCategory] = useState<string>(() => takePendingGenre(type) ?? 'ALL')
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState<Sort>('source')
+  const savedSort = usePlaybackPrefs().vodSort
+  const setSort = (vodSort: Sort) => setPlaybackPrefs({ vodSort })
   const [sortOpen, setSortOpen] = useState(false)
   const deferredQuery = useDeferredValue(query)
   const pinned = useScrolledPast(150)
@@ -76,6 +78,8 @@ const MobileCatalog: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
   const trendRank = useMemo(() => new Map(trending.matches.map((m) => [m.item.id, m.rank])), [trending.matches])
   const hasAddedDates = useMemo(() => items.some((it) => it.addedAt), [items])
   const sorts = (Object.keys(SORT_LABELS) as Sort[]).filter((s) => (s !== 'trending' || trendRank.size > 0) && (s !== 'recent' || hasAddedDates))
+  // Tri mémorisé ; indisponible ici (pas de tendances, pas de dates d'ajout) : ordre du fournisseur
+  const sort: Sort = sorts.includes(savedSort) ? savedSort : 'source'
 
   const genres = useMemo(() => {
     const counts = new Map<string, number>()

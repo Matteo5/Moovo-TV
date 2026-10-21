@@ -98,7 +98,9 @@ interface MoovoNativePlugin {
   videoStop(): Promise<void>
   addListener(event: 'videoEvent', listener: (event: NativeVideoEvent) => void): Promise<PluginListenerHandle>
   /** Android : télécharge l'APK de la nouvelle version puis ouvre l'installateur (rejet NEED_PERMISSION possible). */
-  installUpdate(options: { url: string }): Promise<void>
+  /** Télécharge l'APK en arrière-plan (absent des versions 1.4 et antérieures). */
+  prepareUpdate(options: { url: string; versionCode: number }): Promise<void>
+  installUpdate(options: { url: string; versionCode?: number }): Promise<void>
   addListener(event: 'updateProgress', listener: (event: { received: number; total: number }) => void): Promise<PluginListenerHandle>
 }
 export const MoovoNative = registerPlugin<MoovoNativePlugin>('MoovoNative')

@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { CalendarClock, History, Play, Download, Crosshair } from 'lucide-react'
+import { CalendarClock, History, Play, Download, Crosshair, Heart } from 'lucide-react'
 import { useIptvStore } from '../store/useIptvStore'
 import { UNIVERSES, categoryLabel, categoryUniverse, filterBySelection, selectionUniverse, universeSelection } from '../services/categoryService'
 import type { Channel, EpgProgram } from '../types/iptv'
@@ -100,6 +100,7 @@ const GuideEmpty: React.FC = () => {
 const GuideView: React.FC = () => {
   const channels = useIptvStore((s) => s.channels)
   const categories = useIptvStore((s) => s.categories)
+  const categoryCounts = useIptvStore((s) => s.categoryCounts)
   const selectedCategory = useIptvStore((s) => s.selectedCategory)
   const selectCategory = useIptvStore((s) => s.selectCategory)
   const favorites = useIptvStore((s) => s.favorites)
@@ -125,6 +126,8 @@ const GuideView: React.FC = () => {
       : 'ALL'
   const list = useMemo(() => filterBySelection(channels, selection, favorites), [channels, selection, favorites])
   const universes = useMemo(() => UNIVERSES.filter((u) => categories.some((c) => categoryUniverse(c) === u.id)), [categories])
+  const activeUniverse = selectionUniverse(selection) ?? (categories.includes(selection) ? categoryUniverse(selection) : null)
+  const universeCategories = useMemo(() => (activeUniverse ? categories.filter((c) => categoryUniverse(c) === activeUniverse) : []), [categories, activeUniverse])
 
   const ppm = REM_PER_MIN * rem
   const rowPx = ROW_REM * rem
@@ -277,29 +280,36 @@ const GuideView: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <GuideHeader dayOffset={dayOffset} setDayOffset={setDayOffset} onNow={scrollToNow}>
-        <select
-          value={selection}
-          onChange={(e) => selectCategory(e.target.value)}
-          aria-label="Catégorie"
-          className="h-10 max-w-56 rounded-full bg-ink-800 px-4 text-sm font-semibold text-paper ring-1 ring-white/6 focus:outline-none focus:ring-2 focus:ring-accent"
-        >
-          <option value="ALL">Toutes les chaînes</option>
-          <option value="FAVORITES">Favoris</option>
-          {universes.map((u) => (
-            <optgroup key={u.id} label={u.label}>
-              <option value={universeSelection(u.id)}>Tout {u.id === 'other' ? '' : u.label}</option>
-              {categories
-                .filter((c) => categoryUniverse(c) === u.id)
-                .map((c) => (
-                  <option key={c} value={c}>
-                    {categoryLabel(c)}
-                  </option>
-                ))}
-            </optgroup>
-          ))}
-        </select>
-      </GuideHeader>
+      <GuideHeader dayOffset={dayOffset} setDayOffset={setDayOffset} onNow={scrollToNow} />
+
+      {/* Filtre par univers puis par bouquet, en pastilles (un menu déroulant est peu pratique à la télécommande) */}
+      <div role="group" aria-label="Bouquets" className="no-scrollbar mb-3 flex shrink-0 items-center gap-2 overflow-x-auto px-[var(--gutter)] py-1">
+        <Chip selected={selection === 'ALL'} onClick={() => selectCategory('ALL')}>
+          Toutes
+        </Chip>
+        <Chip selected={selection === 'FAVORITES'} count={favorites.length} onClick={() => selectCategory('FAVORITES')}>
+          <Heart className="size-3.5" />
+          Favoris
+        </Chip>
+        {universes.map((u) => (
+          <Chip key={u.id} selected={activeUniverse === u.id} onClick={() => selectCategory(universeSelection(u.id))}>
+            {u.label}
+          </Chip>
+        ))}
+        {activeUniverse && universeCategories.length > 1 && (
+          <>
+            <span className="mx-1 h-6 w-px shrink-0 bg-white/10" />
+            <Chip selected={selection === universeSelection(activeUniverse)} onClick={() => selectCategory(universeSelection(activeUniverse))}>
+              Tout
+            </Chip>
+            {universeCategories.map((c) => (
+              <Chip key={c} selected={selection === c} count={categoryCounts[c]} onClick={() => selectCategory(c)}>
+                {categoryLabel(c)}
+              </Chip>
+            ))}
+          </>
+        )}
+      </div>
 
       {/* Bandeau d'information sur le programme survolé */}
       <div className="mx-[var(--gutter)] mb-3 hidden h-[5.5rem] items-center gap-5 rounded-2xl bg-ink-900 px-5 ring-1 ring-white/5 md:flex tv:h-[4.25rem]">
@@ -376,8 +386,7 @@ const GuideHeader: React.FC<{
   dayOffset: number
   setDayOffset: (d: number) => void
   onNow?: () => void
-  children?: React.ReactNode
-}> = ({ dayOffset, setDayOffset, onNow, children }) => (
+}> = ({ dayOffset, setDayOffset, onNow }) => (
   <div className="flex flex-wrap items-end gap-4 px-[var(--gutter)] pb-4 pt-5 md:pt-8 tv:pb-3 tv:pt-[var(--gutter)]">
     <div className="mr-auto tv:hidden">
       <h1 className="mt-1 font-xwide text-3xl font-extrabold tracking-tight md:text-4xl">{dayLabel(dayOffset)}</h1>
@@ -393,7 +402,6 @@ const GuideHeader: React.FC<{
           Maintenant
         </Button>
       )}
-      {children}
     </div>
   </div>
 )

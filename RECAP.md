@@ -112,3 +112,11 @@ Appli installée sur iPhone 16 depuis un Mac (Xcode 27, signature « Personal Te
 - **APK 1.4 signé** avec une nouvelle clé (`~/Moovo-TV-signature/`, hors dépôt) : désinstaller une fois l'ancienne version 1.3.
 - Durées des films lisibles (« 1 h 52 min »).
 - Testé sur émulateur Android TV 14 (API 34) : connexion, direct, zapping, film MKV, mise à jour (jusqu'à l'autorisation d'installation).
+
+## 21 octobre 2026 : retours des testeurs (APK 1.5)
+
+- **Tri des films et séries mémorisé** (« Ajoutés récemment »…) d'une ouverture à l'autre, aussi réglable dans Réglages › Lecture (TV et mobile).
+- **Guide TV filtrable par bouquet** : pastilles Toutes / Favoris / univers puis bouquets de l'univers, à la place du menu déroulant peu utilisable à la télécommande.
+- **Télécommande, onglet Direct** : Droite depuis un bouquet arrivait sur la chaîne alignée à l'écran (pas la première) ; Haut depuis la liste ouvrait l'onglet le plus proche (« Favoris »…) au lieu de l'onglet en cours. Guide : Haut depuis une chaîne pouvait viser une émission cachée sous la colonne.
+- **Mises à jour** : l'APK est téléchargé en arrière-plan, la fenêtre n'apparaît qu'une fois prêt et jamais pendant la lecture ; une confirmation d'Android suffit. Données conservées (même clé de signature, vérifiée : SHA-256 `2243ac55…e916`). Essai sur émulateur : 1.4 connectée → 1.5 installée par-dessus, toujours connectée.
+- Pour publier : déposer `release/Moovo-TV-1.5.apk` sur Google Drive (partage « Tous les utilisateurs disposant du lien »), puis mettre `versionCode: 6`, `versionName: "1.5"` et le nouveau lien dans `android/update.json` et pousser sur GitHub.

@@ -4,7 +4,8 @@
  * Titres et chaînes inventés, affiches dessinées ici : à ne jamais présenter comme de vraies données.
  */
 import { useIptvStore } from '../store/useIptvStore'
-import type { Channel, VodItem } from '../types/iptv'
+import type { Channel, EpgProgram, VodItem } from '../types/iptv'
+import { epgService } from '../services/epgService'
 
 const PALETTE = [
   ['#0b3b4d', '#1c2d5e'],
@@ -115,7 +116,9 @@ const CHANNELS: [string, string, string][] = [
 
 function channels(): Channel[] {
   const now = Date.now()
-  return CHANNELS.map(([name, group, title], i) => {
+  // Plusieurs exemplaires de chaque chaîne : des listes assez longues pour tester le défilement à la télécommande
+  const all = Array.from({ length: 6 }, (_, k) => CHANNELS.map(([name, group, title]) => [k ? `${name} ${k + 1}` : name, group, title] as const)).flat()
+  return all.map(([name, group, title], i) => {
     const start = new Date(now - (10 + i * 7) * 60_000)
     const stop = new Date(start.getTime() + (45 + i * 5) * 60_000)
     return {
@@ -131,8 +134,24 @@ function channels(): Channel[] {
   })
 }
 
+/** Grille de démonstration : une émission par heure sur chaque chaîne, d'hier à demain. */
+function demoGuide(list: Channel[]) {
+  const programs = (epgService as unknown as { programsByChannel: Map<string, EpgProgram[]> }).programsByChannel
+  const from = new Date()
+  from.setHours(0, 0, 0, 0)
+  for (const c of list) {
+    const items: EpgProgram[] = []
+    for (let h = -24; h < 48; h++) {
+      const start = new Date(from.getTime() + h * 3600_000)
+      items.push({ channelId: c.id, title: `${c.currentProgram?.title ?? 'Émission'} (${start.getHours()} h)`, start, stop: new Date(start.getTime() + 3600_000) })
+    }
+    programs.set(c.id, items)
+  }
+}
+
 export function installDemoCatalog() {
   const list = channels()
+  demoGuide(list)
   const counts: Record<string, number> = {}
   for (const c of list) counts[c.group] = (counts[c.group] || 0) + 1
   const movies = vod(MOVIES, 'movie')

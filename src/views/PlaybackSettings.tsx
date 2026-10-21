@@ -4,6 +4,7 @@ import {
   EXTERNAL_PLAYERS,
   IOS_PLAYERS,
   LANGUAGE_CHOICES,
+  VOD_SORTS,
   setPlaybackPrefs,
   usePlaybackPrefs,
   type BufferProfile,
@@ -97,6 +98,15 @@ export const PlaybackSettings: React.FC = () => {
           ))}
         </Group>
       )}
+
+      <Group
+        title="Tri des films et séries"
+        note="Aussi modifiable en haut des pages Films et Séries ; le choix est retenu à la prochaine ouverture."
+      >
+        {VOD_SORTS.map((o) => (
+          <Option key={o.id} selected={prefs.vodSort === o.id} onSelect={() => setPlaybackPrefs({ vodSort: o.id })} label={o.label} />
+        ))}
+      </Group>
 
       <Group title="Guide TV du fournisseur Xtream">
         <Option selected={prefs.autoProviderEpg} onSelect={() => setPlaybackPrefs({ autoProviderEpg: true })} label="Charger automatiquement" hint="Au démarrage, si aucun guide n’est défini" />

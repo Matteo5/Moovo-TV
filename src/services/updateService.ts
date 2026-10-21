@@ -3,7 +3,10 @@ import { MoovoNative, nativePlatform } from '../native'
 /**
  * Mises à jour de l'application Android (téléphone, Android TV, Fire TV) installée hors Play Store.
  * android/update.json, publié dans le dépôt GitHub, décrit la dernière version et le lien de son APK
- * (Google Drive). Au démarrage, l'application compare avec sa propre version et propose l'installation.
+ * (Google Drive). Au démarrage, l'application compare avec sa propre version, télécharge la nouvelle en
+ * arrière-plan puis propose l'installation : une confirmation d'Android suffit (obligatoire hors Play Store).
+ * Même identifiant et même clé de signature : l'application est remplacée sans perdre ses données
+ * (source connectée, favoris, réglages). Ne jamais changer la clé (~/Moovo-TV-signature/).
  */
 const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/Matteo5/Moovo-TV/main/android/update.json'
 
@@ -55,11 +58,16 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   }
 }
 
-/** Télécharge l'APK et ouvre l'installateur d'Android. onProgress : 0 à 1 (ou -1 si taille inconnue). */
+/** Télécharge l'APK en arrière-plan, sans rien afficher : l'installation sera ensuite immédiate. */
+export async function prepareUpdate(update: AvailableUpdate): Promise<void> {
+  await MoovoNative.prepareUpdate({ url: update.apkUrl, versionCode: update.versionCode })
+}
+
+/** Ouvre l'installateur d'Android (téléchargement d'abord si besoin). onProgress : 0 à 1 (ou -1 si taille inconnue). */
 export async function installUpdate(update: AvailableUpdate, onProgress: (ratio: number) => void): Promise<void> {
   const handle = await MoovoNative.addListener('updateProgress', (e) => onProgress(e.total > 0 ? e.received / e.total : -1))
   try {
-    await MoovoNative.installUpdate({ url: update.apkUrl })
+    await MoovoNative.installUpdate({ url: update.apkUrl, versionCode: update.versionCode })
   } finally {
     void handle.remove()
   }

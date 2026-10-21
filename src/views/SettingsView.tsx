@@ -172,7 +172,7 @@ const SettingsView: React.FC = () => {
           <CategorySettings />
         </Section>
 
-        <Section title="Lecture" description="Tampon, langues, sous-titres et lecteur utilisé pour les films et séries.">
+        <Section title="Lecture" description="Tampon, langues, sous-titres, lecteur et tri des films et séries.">
           <PlaybackSettings />
         </Section>
 

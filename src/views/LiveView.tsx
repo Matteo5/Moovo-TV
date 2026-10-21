@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Heart, Play, Search, X, History, Layers, Lock } from 'lucide-react'
 import { useIptvStore } from '../store/useIptvStore'
 import type { Channel } from '../types/iptv'
@@ -9,6 +9,7 @@ import { ChannelNumber, OnAirDot, ProgressLine, formatTime, programProgress } fr
 import { useNow } from '../hooks/useNow'
 import { useUpcoming } from '../hooks/useUpcoming'
 import { useLockedCategorySet } from '../hooks/useParentalFilter'
+import { revealElement } from '../hooks/useSpatialNavigation'
 import {
   ALL,
   FAVORITES,
@@ -39,6 +40,7 @@ const ChannelRow: React.FC<{
       onClick={() => onPlay(channel)}
       onFocus={() => onFocusChannel(channel)}
       onMouseEnter={() => onFocusChannel(channel)}
+      data-live-selected={selected || undefined}
       className={`group relative mx-2 flex h-[calc(100%-0.25rem)] w-[calc(100%-1rem)] items-center gap-4 rounded-xl px-3 text-left transition-colors ${
         selected ? 'bg-ink-800' : 'hover:bg-ink-850 focus-visible:bg-ink-800'
       }`}
@@ -238,7 +240,28 @@ const LiveView: React.FC = () => {
   const isTv = typeof document !== 'undefined' && document.documentElement.dataset.device === 'tv'
   const now = useNow()
   const [filter, setFilter] = useState('')
-  const [focused, setFocused] = useState<Channel | null>(null)
+  // Chaîne survolée, liée à la liste où elle a été choisie : un nouveau bouquet ou une recherche repart de la première chaîne
+  const listKey = `${selectedCategory}|${filter}`
+  const [focusedIn, setFocusedIn] = useState<{ channel: Channel; listKey: string } | null>(null)
+  const focused = focusedIn?.listKey === listKey ? focusedIn.channel : null
+  const setFocused = useCallback((channel: Channel) => setFocusedIn({ channel, listKey }), [listKey])
+
+  // Télécommande : Droite depuis les bouquets mène à la chaîne sélectionnée (la première, ou celle qu'on vient
+  // de quitter), pas à la ligne qui se trouve en face du bouquet à l'écran
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowRight' || e.defaultPrevented) return
+      const active = document.activeElement as HTMLElement | null
+      if (!active?.closest('nav[aria-label="Bouquets"]')) return
+      const row = document.querySelector<HTMLElement>('[data-live-selected]')
+      if (!row) return
+      e.preventDefault()
+      row.focus({ preventScroll: true })
+      revealElement(row, e.repeat)
+    }
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
+  }, [])
 
   const favoriteSet = useMemo(() => new Set(favorites), [favorites])
   const lockedSet = useLockedCategorySet()
@@ -391,7 +414,7 @@ const LiveView: React.FC = () => {
             <VirtualList
               items={list}
               rowHeightRem={isTv ? 3.6 : 4.75}
-              resetKey={`${selectedCategory}|${filter}`}
+              resetKey={listKey}
               getKey={(c) => c.id}
               className="h-full"
               renderRow={(c) => (

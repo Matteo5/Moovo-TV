@@ -10,16 +10,15 @@ import { categoryLabel } from '../services/categoryService'
 import { useTrending } from '../hooks/useTrending'
 import { useVisibleVod } from '../hooks/useParentalFilter'
 import { Lock } from 'lucide-react'
+import { VOD_SORTS, setPlaybackPrefs, usePlaybackPrefs, type VodSort } from '../services/playbackPrefs'
 
-type Sort = 'source' | 'trending' | 'recent' | 'title' | 'rating'
-
-const SORTS: { id: Sort; label: string; icon: React.ReactNode }[] = [
-  { id: 'source', label: 'Ordre du fournisseur', icon: <ListOrdered className="size-4" /> },
-  { id: 'trending', label: 'Tendances', icon: <Flame className="size-4" /> },
-  { id: 'recent', label: 'Ajoutés récemment', icon: <CalendarPlus className="size-4" /> },
-  { id: 'title', label: 'A → Z', icon: <ArrowDownAZ className="size-4" /> },
-  { id: 'rating', label: 'Mieux notés', icon: <Star className="size-4" /> },
-]
+const SORT_ICONS: Record<VodSort, React.ReactNode> = {
+  source: <ListOrdered className="size-4" />,
+  trending: <Flame className="size-4" />,
+  recent: <CalendarPlus className="size-4" />,
+  title: <ArrowDownAZ className="size-4" />,
+  rating: <Star className="size-4" />,
+}
 
 const VodView: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
   const allItems = useIptvStore((s) => (type === 'movie' ? s.vodMovies : s.vodSeries))
@@ -28,11 +27,15 @@ const VodView: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
   const openVodDetail = useIptvStore((s) => s.openVodDetail)
   const [category, setCategory] = useState('ALL')
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState<Sort>('source')
+  // Tri mémorisé (Réglages › Lecture) ; s'il est indisponible ici (pas de tendances, pas de dates d'ajout),
+  // on affiche l'ordre du fournisseur sans oublier le choix enregistré
+  const savedSort = usePlaybackPrefs().vodSort
+  const setSort = (vodSort: VodSort) => setPlaybackPrefs({ vodSort })
   const trending = useTrending(type === 'movie' ? 'movie' : 'tv', items)
   const trendRank = useMemo(() => new Map(trending.matches.map((m) => [m.item.id, m.rank])), [trending.matches])
   const hasAddedDates = useMemo(() => items.some((it) => it.addedAt), [items])
-  const sorts = SORTS.filter((s) => (s.id !== 'trending' || trendRank.size > 0) && (s.id !== 'recent' || hasAddedDates))
+  const sorts = VOD_SORTS.filter((s) => (s.id !== 'trending' || trendRank.size > 0) && (s.id !== 'recent' || hasAddedDates))
+  const sort: VodSort = sorts.some((s) => s.id === savedSort) ? savedSort : 'source'
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>()
@@ -149,7 +152,7 @@ const VodView: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
               sort === s.id ? 'text-accent' : 'text-fog hover:text-paper'
             }`}
           >
-            {s.icon}
+            {SORT_ICONS[s.id]}
             {s.label}
           </button>
         ))}
