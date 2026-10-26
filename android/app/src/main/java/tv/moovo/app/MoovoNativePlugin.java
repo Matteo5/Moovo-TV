@@ -287,7 +287,39 @@ public class MoovoNativePlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         if (video != null) video.stop();
+        if (pairing != null) pairing.stop();
         super.handleOnDestroy();
+    }
+
+    // ── Appairage depuis un téléphone (serveur local, événement « pairingReceived ») ──
+
+    private PairingServer pairing;
+
+    @PluginMethod
+    public void startPairing(PluginCall call) {
+        String address = PairingServer.localAddress();
+        if (address == null) {
+            call.reject("La TV n'est pas connectée à un réseau local.", "NO_NETWORK");
+            return;
+        }
+        if (pairing == null) pairing = new PairingServer(getContext(), source -> notifyListeners("pairingReceived", source));
+        try {
+            pairing.start();
+        } catch (java.io.IOException e) {
+            call.reject("Appairage impossible : " + e.getMessage());
+            return;
+        }
+        String url = "http://" + address + (pairing.port() == 80 ? "" : ":" + pairing.port()) + "/";
+        JSObject result = new JSObject();
+        result.put("url", url);
+        result.put("code", pairing.code());
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void stopPairing(PluginCall call) {
+        if (pairing != null) pairing.stop();
+        call.resolve();
     }
 
     /** Lecteurs externes installés parmi ceux pris en charge. */

@@ -31,6 +31,7 @@ import { fileStore } from '../services/fileStore'
 import { getPlaybackPrefs } from '../services/playbackPrefs'
 import { hasExternalPlayers, nativePlatform, needsExternalPlayerOnIos, openInExternalPlayer, playInNativePlayer } from '../native'
 import { checkStream } from '../services/streamCheck'
+import { playlistsService, type PlaylistSource, type SavedPlaylist } from '../services/playlistsService'
 
 const LOCAL_FILE_PREFIX = 'file:'
 
@@ -97,8 +98,18 @@ interface IptvState {
   lockAdultVod: boolean
   /** Déverrouillé jusqu'à la fermeture de l'application */
   parentalUnlocked: boolean
-  /** Contenu qui attend le code avant de s'ouvrir */
-  pendingUnlock: { kind: 'channel'; channel: Channel } | { kind: 'vod'; item: VodItem } | null
+  /** Contenu (ou playlist protégée) qui attend le code avant de s'ouvrir */
+  pendingUnlock:
+    | { kind: 'channel'; channel: Channel }
+    | { kind: 'vod'; item: VodItem }
+    | { kind: 'playlist'; playlist: SavedPlaylist }
+    | null
+  /** Playlists enregistrées et celle en cours */
+  playlists: SavedPlaylist[]
+  activePlaylistId: string | null
+  /** Écran de choix de la playlist (démarrage avec plusieurs playlists, ou playlist protégée) */
+  playlistPicker: boolean
+  playlistAskAtStartup: boolean
   favorites: string[]
   status: LoadingStatus
   errorMessage: string | null
@@ -159,6 +170,15 @@ interface IptvState {
   openVodDetail: (item: VodItem) => void
   closeVodDetail: () => void
   resetPlaylist: () => void
+  /** Ouvre une playlist enregistrée (code demandé d'abord si elle en a un). */
+  openPlaylist: (id: string, options?: { unlocked?: boolean }) => Promise<void>
+  /** Se connecte à une source reçue d'ailleurs (appairage depuis un téléphone), avec son nom. */
+  loadSource: (source: PlaylistSource, name?: string) => Promise<void>
+  renamePlaylist: (id: string, name: string) => void
+  setPlaylistPin: (id: string, pin: string) => void
+  removePlaylist: (id: string) => void
+  setPlaylistPicker: (open: boolean) => void
+  setPlaylistAskAtStartup: (ask: boolean) => void
   clearCacheAndReload: () => void
   setPreferredProxy: (proxyId: string) => void
 }
@@ -321,6 +341,49 @@ export const useIptvStore = create<IptvState>((set, get) => {
     if (epgUrl && epgUrl.trim()) get().loadEpg(epgUrl.trim())
   }
 
+  // Nom à donner à la prochaine source qui se connecte (appairage), puis oublié
+  let nextPlaylistName: string | undefined
+
+  /** Source connectée avec succès : enregistrée (ou rafraîchie) dans la liste et marquée comme active. */
+  const rememberSource = (source: PlaylistSource) => {
+    const { list, id } = playlistsService.upsert(get().playlists, source, nextPlaylistName)
+    nextPlaylistName = undefined
+    playlistsService.saveAll(list)
+    playlistsService.setActiveId(id)
+    set({ playlists: list, activePlaylistId: id })
+  }
+
+  const updatePlaylists = (list: SavedPlaylist[]) => {
+    playlistsService.saveAll(list)
+    set({ playlists: list })
+  }
+
+  /** Vide l'écran avant de charger une autre playlist (le chargement s'affiche en plein écran). */
+  const clearForSwitch = () => {
+    epgService.clear()
+    seasonsCache.clear()
+    set((state) => ({
+      channels: [],
+      allChannels: [],
+      vodMovies: [],
+      vodSeries: [],
+      categories: [],
+      allCategories: [],
+      categoryCounts: {},
+      activeChannel: null,
+      vodDetail: null,
+      episodeContext: null,
+      xtreamUserInfo: null,
+      stalkerToken: null,
+      epgStatus: 'idle',
+      epgVersion: state.epgVersion + 1,
+      selectedCategory: 'ALL',
+      searchQuery: '',
+      currentView: 'home',
+      playlistPicker: false,
+    }))
+  }
+
   const failWith = (err: unknown, fallback: string) => {
     set({
       status: 'error',
@@ -355,6 +418,10 @@ export const useIptvStore = create<IptvState>((set, get) => {
     lockAdultVod: initialParental.lockAdultVod,
     parentalUnlocked: false,
     pendingUnlock: null,
+    playlists: playlistsService.getAll(),
+    activePlaylistId: playlistsService.getActiveId(),
+    playlistPicker: false,
+    playlistAskAtStartup: playlistsService.getAskAtStartup(),
     favorites: storageService.getFavorites(),
     status: 'idle',
     errorMessage: null,
@@ -410,8 +477,18 @@ export const useIptvStore = create<IptvState>((set, get) => {
         }
       }
 
+      // Plusieurs playlists (ou playlist protégée par un code) : on laisse choisir avant de charger
+      const playlists = playlistsService.getAll()
+      const active = playlists.find((p) => p.id === playlistsService.getActiveId())
+      if ((playlists.length > 1 && playlistsService.getAskAtStartup()) || active?.pin) {
+        set({ playlists, playlistPicker: true })
+        return
+      }
+
       try {
-        if (savedMode === 'xtream' && savedXtream) {
+        if (active) {
+          await get().openPlaylist(active.id)
+        } else if (savedMode === 'xtream' && savedXtream) {
           await get().loadXtream(savedXtream, savedEpg || undefined)
         } else if (savedMode === 'stalker' && savedStalker) {
           await get().loadStalker(savedStalker, savedEpg || undefined)
@@ -482,6 +559,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
         const { live, movies, series } = splitM3uContent(groupChannelsByQuality(result.channels))
         storageService.setConnectionMode('m3u')
         storageService.setPlaylistUrl(cleanUrl)
+        rememberSource({ mode: 'm3u', playlistUrl: cleanUrl, epgUrl: epgUrl?.trim() || undefined })
         applyLiveChannels(live, { vodMovies: movies, vodSeries: series })
         startEpg(epgUrl)
       } catch (err) {
@@ -509,6 +587,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
 
         storageService.setConnectionMode('xtream')
         storageService.setXtreamCredentials(creds)
+        rememberSource({ mode: 'xtream', xtream: creds, epgUrl: epgUrl?.trim() || undefined })
         applyLiveChannels(groupChannelsByQuality(liveResult.channels), {
           vodMovies,
           vodSeries,
@@ -537,6 +616,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
         const result = await stalkerService.loadContent(creds)
         storageService.setConnectionMode('stalker')
         storageService.setStalkerCredentials(creds)
+        rememberSource({ mode: 'stalker', stalker: creds, epgUrl: epgUrl?.trim() || undefined })
         applyLiveChannels(groupChannelsByQuality(result.channels), {
           vodMovies: [],
           vodSeries: [],
@@ -563,6 +643,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
         const result = await enigmaService.getAllServices(creds)
         storageService.setConnectionMode('enigma2')
         storageService.setEnigmaCredentials(creds)
+        rememberSource({ mode: 'enigma2', enigma: creds, epgUrl: epgUrl?.trim() || undefined })
         applyLiveChannels(groupChannelsByQuality(result.channels), { vodMovies: [], vodSeries: [] })
         startEpg(epgUrl)
       } catch (err) {
@@ -622,6 +703,11 @@ export const useIptvStore = create<IptvState>((set, get) => {
 
       set({ epgStatus: 'loading', epgUrl: cleanUrl })
       storageService.setEpgUrl(cleanUrl)
+      // Le guide choisi reste attaché à la playlist en cours
+      const { activePlaylistId, playlists } = get()
+      if (activePlaylistId && playlists.some((p) => p.id === activePlaylistId && p.epgUrl !== cleanUrl)) {
+        updatePlaylists(playlists.map((p) => (p.id === activePlaylistId ? { ...p, epgUrl: cleanUrl } : p)))
+      }
 
       try {
         await epgService.loadEpgFromUrl(cleanUrl, get().preferredProxy)
@@ -736,7 +822,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
     },
 
     setParentalPin: (pin) => {
-      const clean = pin.replace(/D/g, '').slice(0, 4)
+      const clean = pin.replace(/\D/g, '').slice(0, 4)
       const state = get()
       // Premier code : les bouquets adultes sont verrouillés d'office (modifiable ensuite)
       const locked =
@@ -776,6 +862,13 @@ export const useIptvStore = create<IptvState>((set, get) => {
 
     submitParentalPin: (pin) => {
       const { parentalPin, pendingUnlock } = get()
+      // Playlist protégée : son propre code, sans déverrouiller le contrôle parental
+      if (pendingUnlock?.kind === 'playlist') {
+        if (pin !== pendingUnlock.playlist.pin) return false
+        set({ pendingUnlock: null })
+        void get().openPlaylist(pendingUnlock.playlist.id, { unlocked: true })
+        return true
+      }
       if (!parentalPin || pin !== parentalPin) return false
       set({ parentalUnlocked: true, pendingUnlock: null })
       if (pendingUnlock?.kind === 'channel') get().setActiveChannel(pendingUnlock.channel)
@@ -950,6 +1043,65 @@ export const useIptvStore = create<IptvState>((set, get) => {
         searchQuery: '',
         currentView: 'home',
       })
+    },
+
+    openPlaylist: async (id, options = {}) => {
+      const playlist = get().playlists.find((p) => p.id === id)
+      if (!playlist) return
+      if (playlist.pin && !options.unlocked) {
+        set({ pendingUnlock: { kind: 'playlist', playlist } })
+        return
+      }
+
+      clearForSwitch()
+      const epg = playlist.epgUrl || undefined
+      if (epg) storageService.setEpgUrl(epg)
+      else storageService.clearEpgUrl()
+      set({ epgUrl: epg ?? null })
+
+      if (playlist.mode === 'xtream' && playlist.xtream) return get().loadXtream(playlist.xtream, epg)
+      if (playlist.mode === 'stalker' && playlist.stalker) return get().loadStalker(playlist.stalker, epg)
+      if (playlist.mode === 'enigma2' && playlist.enigma) return get().loadEnigma(playlist.enigma, epg)
+      if (playlist.playlistUrl) return get().loadPlaylist(playlist.playlistUrl, epg)
+    },
+
+    loadSource: async (source, name) => {
+      clearForSwitch()
+      nextPlaylistName = name
+      const epg = source.epgUrl || undefined
+      if (source.mode === 'xtream' && source.xtream) return get().loadXtream(source.xtream, epg)
+      if (source.mode === 'stalker' && source.stalker) return get().loadStalker(source.stalker, epg)
+      if (source.mode === 'enigma2' && source.enigma) return get().loadEnigma(source.enigma, epg)
+      if (source.playlistUrl) return get().loadPlaylist(source.playlistUrl, epg)
+      nextPlaylistName = undefined
+    },
+
+    renamePlaylist: (id, name) => {
+      const clean = name.trim()
+      if (!clean) return
+      updatePlaylists(get().playlists.map((p) => (p.id === id ? { ...p, name: clean } : p)))
+    },
+
+    setPlaylistPin: (id, pin) => {
+      const clean = pin.replace(/\D/g, '').slice(0, 4)
+      if (clean && clean.length !== 4) return
+      updatePlaylists(get().playlists.map((p) => (p.id === id ? { ...p, pin: clean || undefined } : p)))
+    },
+
+    removePlaylist: (id) => {
+      const list = get().playlists.filter((p) => p.id !== id)
+      updatePlaylists(list)
+      if (get().activePlaylistId === id) {
+        playlistsService.setActiveId(null)
+        set({ activePlaylistId: null })
+      }
+    },
+
+    setPlaylistPicker: (open) => set({ playlistPicker: open }),
+
+    setPlaylistAskAtStartup: (ask) => {
+      playlistsService.setAskAtStartup(ask)
+      set({ playlistAskAtStartup: ask })
     },
 
     clearCacheAndReload: () => {

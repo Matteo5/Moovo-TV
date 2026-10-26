@@ -36,11 +36,17 @@ export const PinPrompt: React.FC = () => {
     }
   }
 
+  // Nouvelle demande : saisie vide et focus sur le pavé (pas à chaque chiffre, sinon la saisie s'efface)
   useEffect(() => {
     if (!pending) return
     setPin('')
     setError(false)
     const id = window.setTimeout(() => rootRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus(), 40)
+    return () => window.clearTimeout(id)
+  }, [pending])
+
+  useEffect(() => {
+    if (!pending) return
     const onKey = (e: KeyboardEvent) => {
       if (/^\d$/.test(e.key)) {
         e.preventDefault()
@@ -51,22 +57,20 @@ export const PinPrompt: React.FC = () => {
       }
     }
     window.addEventListener('keydown', onKey, true)
-    return () => {
-      window.clearTimeout(id)
-      window.removeEventListener('keydown', onKey, true)
-    }
+    return () => window.removeEventListener('keydown', onKey, true)
     // press dépend de pin : on réabonne à chaque saisie
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending, pin])
 
   if (!pending) return null
-  const title = pending.kind === 'channel' ? pending.channel.name : pending.item.cleanTitle
+  const title =
+    pending.kind === 'channel' ? pending.channel.name : pending.kind === 'vod' ? pending.item.cleanTitle : pending.playlist.name
 
   return (
-    <div ref={rootRef} data-nav-trap role="dialog" aria-modal="true" aria-label="Code parental" className="fixed inset-0 z-[80] flex items-center justify-center bg-ink-950/90 px-6 animate-rise">
+    <div ref={rootRef} data-nav-trap role="dialog" aria-modal="true" aria-label={pending.kind === 'playlist' ? 'Code de la playlist' : 'Code parental'} className="fixed inset-0 z-[80] flex items-center justify-center bg-ink-950/90 px-6 animate-rise">
       <div className="w-full max-w-sm rounded-3xl bg-ink-900 p-7 text-center ring-1 ring-white/8 shadow-[0_2rem_5rem_-1rem_rgb(0_0_0/0.9)]">
         <Lock className="mx-auto size-8 text-brand-magenta" />
-        <h2 className="mt-4 font-wide text-2xl font-bold">Code parental</h2>
+        <h2 className="mt-4 font-wide text-2xl font-bold">{pending.kind === 'playlist' ? 'Code de la playlist' : 'Code parental'}</h2>
         <p className="mt-1 truncate text-sm text-mist">{title}</p>
         <div className="mt-6 flex justify-center gap-3" aria-live="polite">
           {[0, 1, 2, 3].map((i) => (

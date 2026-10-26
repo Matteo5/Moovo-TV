@@ -240,6 +240,12 @@ export class EpgService {
   hasData(): boolean {
     return this.programsByChannel.size > 0
   }
+
+  /** Oublie le guide chargé (changement de playlist). */
+  clear(): void {
+    this.programsByChannel.clear()
+    this.channelNameMap.clear()
+  }
 }
 
 export const epgService = new EpgService()

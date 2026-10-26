@@ -102,6 +102,23 @@ interface MoovoNativePlugin {
   prepareUpdate(options: { url: string; versionCode: number }): Promise<void>
   installUpdate(options: { url: string; versionCode?: number }): Promise<void>
   addListener(event: 'updateProgress', listener: (event: { received: number; total: number }) => void): Promise<PluginListenerHandle>
+  /** Android : serveur d'appairage du réseau local (page de saisie pour le téléphone). Absent avant la 1.6. */
+  startPairing(): Promise<{ url: string; code: string }>
+  stopPairing(): Promise<void>
+  addListener(event: 'pairingReceived', listener: (event: PairingPayload) => void): Promise<PluginListenerHandle>
+}
+
+/** Accès envoyés par le téléphone lors de l'appairage (champs de la page res/raw/pairing.html). */
+export interface PairingPayload {
+  mode?: string
+  name?: string
+  serverUrl?: string
+  username?: string
+  password?: string
+  playlistUrl?: string
+  portalUrl?: string
+  macAddress?: string
+  epgUrl?: string
 }
 export const MoovoNative = registerPlugin<MoovoNativePlugin>('MoovoNative')
 

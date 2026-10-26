@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Moovo TV · Connecter la TV</title>
+<style>
+  :root {
+    --ink-950: #030919; --ink-900: #071130; --ink-850: #0b173c; --ink-800: #111f4a;
+    --paper: #f3f5ff; --mist: #aab5d8; --fog: #7482ad; --onair: #ff3d6e; --cyan: #1ec8ff;
+    --streak: linear-gradient(90deg, #1ec8ff, #9b6bff, #ff3ea5, #ff8a1f, #ffd23f);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--ink-950); color: var(--paper); }
+  body {
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(24px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 30rem; margin: 0 auto; }
+  .streak { height: 6px; border-radius: 99px; background: var(--streak); }
+  h1 { margin: 20px 0 4px; font-size: 1.9rem; line-height: 1.1; letter-spacing: -0.02em; }
+  p.lead { margin: 0 0 24px; color: var(--mist); }
+  fieldset { border: 0; margin: 0 0 20px; padding: 0; }
+  legend { font-weight: 700; margin-bottom: 10px; }
+  .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .types label {
+    display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 8px;
+    border-radius: 14px; background: var(--ink-900); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    text-align: center; font-weight: 600; font-size: 0.92rem; cursor: pointer;
+  }
+  .types input { position: absolute; opacity: 0; pointer-events: none; }
+  .types input:checked + span { color: var(--ink-950); }
+  .types label:has(input:checked) { background: var(--paper); color: var(--ink-950); }
+  .types label:has(input:focus-visible) { outline: 3px solid var(--cyan); outline-offset: 2px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; color: var(--mist); }
+  .field small { display: block; margin-top: 4px; color: var(--fog); font-size: 0.82rem; }
+  input[type=text], input[type=url], input[type=password], input[inputmode] {
+    width: 100%; height: 52px; padding: 0 16px; border: 0; border-radius: 14px;
+    background: var(--ink-850); color: var(--paper); font-size: 1rem;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+  input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--cyan); }
+  #code { font: 700 1.6rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.4em; text-align: center; }
+  .hidden { display: none; }
+  button {
+    width: 100%; height: 56px; margin-top: 8px; border: 0; border-radius: 16px;
+    background: var(--streak); color: var(--ink-950); font-size: 1.05rem; font-weight: 800; cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; }
+  .msg { margin-top: 16px; padding: 14px 16px; border-radius: 14px; }
+  .msg.error { background: rgb(255 61 110 / 0.12); color: var(--onair); box-shadow: inset 0 0 0 1px rgb(255 61 110 / 0.3); }
+  .done { text-align: center; padding-top: 32px; }
+  .done h2 { font-size: 1.6rem; margin: 16px 0 6px; }
+  .done p { color: var(--mist); margin: 0; }
+  .note { margin-top: 24px; font-size: 0.85rem; color: var(--fog); }
+</style>
+</head>
+<body>
+<main>
+  <div class="streak"></div>
+  <section id="form-view">
+    <h1>Connecter la TV</h1>
+    <p class="lead">Saisissez vos accès ici : ils sont envoyés directement à Moovo TV sur votre téléviseur.</p>
+    <form id="form" novalidate>
+      <fieldset>
+        <legend>Type d’abonnement</legend>
+        <div class="types">
+          <label><input type="radio" name="mode" value="xtream" checked><span>Xtream Codes</span></label>
+          <label><input type="radio" name="mode" value="m3u"><span>Lien M3U</span></label>
+          <label><input type="radio" name="mode" value="stalker"><span>Portail MAG</span></label>
+        </div>
+      </fieldset>
+
+      <div data-mode="xtream">
+        <div class="field">
+          <label for="serverUrl">Adresse du serveur</label>
+          <input id="serverUrl" type="url" inputmode="url" autocomplete="url" autocapitalize="none" placeholder="http://serveur.exemple.com:8080">
+          <small>Avec le port, par exemple :8080</small>
+        </div>
+        <div class="field">
+          <label for="username">Identifiant</label>
+          <input id="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input id="password" type="password" autocomplete="current-password">
+        </div>
+      </div>
+
+      <div data-mode="m3u" class="hidden">
+        <div class="field">
+          <label for="playlistUrl">Adresse de la playlist</label>
+          <input id="playlistUrl" type="url" inputmode="url" autocapitalize="none" placeholder="https://…/playlist.m3u">
+        </div>
+      </div>
+
+      <div data-mode="stalker" class="hidden">
+        <div class="field">
+          <label for="portalUrl">Adresse du portail</label>
+          <input id="portalUrl" type="url" inputmode="url" autocapitalize="none" placeholder="http://portail.exemple.com/c/">
+        </div>
+        <div class="field">
+          <label for="macAddress">Adresse MAC</label>
+          <input id="macAddress" type="text" autocapitalize="characters" spellcheck="false" placeholder="00:1A:79:XX:XX:XX">
+          <small>Celle déclarée chez votre fournisseur</small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="name">Nom de la playlist (facultatif)</label>
+        <input id="name" type="text" placeholder="Ex. Salon, Abonnement sport…">
+      </div>
+      <div class="field">
+        <label for="epgUrl">Guide des programmes XMLTV (facultatif)</label>
+        <input id="epgUrl" type="url" inputmode="url" autocapitalize="none" placeholder="https://…/guide.xml">
+      </div>
+      <div class="field">
+        <label for="code">Code affiché sur la TV</label>
+        <input id="code" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="····">
+      </div>
+
+      <button id="send" type="submit">Envoyer à la TV</button>
+      <p id="error" class="msg error hidden" role="alert"></p>
+    </form>
+    <p class="note">Vos accès restent sur votre réseau local : ce téléphone les transmet à la TV, sans passer par Internet ni par un service tiers.</p>
+  </section>
+
+  <section id="done-view" class="done hidden" aria-live="polite">
+    <h2>C’est envoyé !</h2>
+    <p>Regardez la TV : Moovo TV se connecte à votre abonnement.</p>
+  </section>
+</main>
+<script>
+  var params = new URLSearchParams(location.search)
+  var code = document.getElementById('code')
+  if (/^\d{4}$/.test(params.get('c') || '')) code.value = params.get('c')
+
+  function currentMode() {
+    return document.querySelector('input[name=mode]:checked').value
+  }
+  function showMode() {
+    var mode = currentMode()
+    document.querySelectorAll('[data-mode]').forEach(function (el) {
+      el.classList.toggle('hidden', el.getAttribute('data-mode') !== mode)
+    })
+  }
+  document.querySelectorAll('input[name=mode]').forEach(function (el) { el.addEventListener('change', showMode) })
+
+  function value(id) { return document.getElementById(id).value.trim() }
+  function fail(message) {
+    var el = document.getElementById('error')
+    el.textContent = message
+    el.classList.remove('hidden')
+  }
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault()
+    document.getElementById('error').classList.add('hidden')
+    var mode = currentMode()
+    var data = { mode: mode, code: value('code'), name: value('name'), epgUrl: value('epgUrl') }
+    if (mode === 'xtream') {
+      data.serverUrl = value('serverUrl'); data.username = value('username'); data.password = value('password')
+      if (!data.serverUrl || !data.username || !data.password) return fail('Renseignez le serveur, l’identifiant et le mot de passe.')
+    } else if (mode === 'm3u') {
+      data.playlistUrl = value('playlistUrl')
+      if (!data.playlistUrl) return fail('Renseignez l’adresse de la playlist.')
+    } else {
+      data.portalUrl = value('portalUrl'); data.macAddress = value('macAddress').toUpperCase()
+      if (!data.portalUrl || !data.macAddress) return fail('Renseignez l’adresse du portail et l’adresse MAC.')
+    }
+    if (!/^\d{4}$/.test(data.code)) return fail('Recopiez les 4 chiffres affichés sur la TV.')
+
+    var send = document.getElementById('send')
+    send.disabled = true
+    send.textContent = 'Envoi…'
+    fetch('/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      .then(function (res) { return res.json().catch(function () { return { ok: false } }) })
+      .then(function (res) {
+        if (res.ok) {
+          document.getElementById('form-view').classList.add('hidden')
+          document.getElementById('done-view').classList.remove('hidden')
+        } else {
+          fail(res.error || 'Envoi refusé par la TV.')
+        }
+      })
+      .catch(function () { fail('La TV ne répond pas. Vérifiez que le téléphone est sur le même Wi-Fi et que l’écran d’appairage est ouvert.') })
+      .finally(function () { send.disabled = false; send.textContent = 'Envoyer à la TV' })
+  })
+</script>
+</body>
+</html>

@@ -4,12 +4,14 @@ import { useDeviceMode } from './hooks/useDevice'
 import { useSpatialNavigation } from './hooks/useSpatialNavigation'
 import { SignalLoader } from './ui/Brand'
 import { UpdatePrompt } from './ui/UpdatePrompt'
+import { PinPrompt } from './ui/PinPrompt'
 import { nativePlatform } from './native'
 
 const Shell = lazy(() => import('./app/Shell').then((m) => ({ default: m.Shell })))
 // Téléphone : interface tactile dédiée (« Le Mur de collections ») ; TV et ordinateur gardent la leur
 const MobileShell = lazy(() => import('./mobile/MobileShell'))
 const Onboarding = lazy(() => import('./views/Onboarding').then((m) => ({ default: m.Onboarding })))
+const PlaylistPicker = lazy(() => import('./views/PlaylistPicker').then((m) => ({ default: m.PlaylistPicker })))
 
 const SOURCE_NAMES = {
   m3u: 'la playlist',
@@ -25,6 +27,7 @@ export const App: React.FC = () => {
   const connectionMode = useIptvStore((s) => s.connectionMode)
   const initialize = useIptvStore((s) => s.initialize)
   const deviceModePreference = useIptvStore((s) => s.deviceModePreference)
+  const playlistPicker = useIptvStore((s) => s.playlistPicker)
   const device = useDeviceMode(deviceModePreference)
 
   // L'écran de connexion se pilote aussi à la télécommande
@@ -46,7 +49,9 @@ export const App: React.FC = () => {
 
   return (
     <Suspense fallback={<SignalLoader title="Moovo TV" />}>
-      {hasChannels ? device === 'mobile' ? <MobileShell /> : <Shell device={device} /> : <Onboarding />}
+      {hasChannels ? device === 'mobile' ? <MobileShell /> : <Shell device={device} /> : playlistPicker ? <PlaylistPicker /> : <Onboarding />}
+      {/* Avec des chaînes, le code est demandé par l'interface (Shell / MobileShell) */}
+      {!hasChannels && <PinPrompt />}
       {nativePlatform === 'android' && <UpdatePrompt />}
     </Suspense>
   )

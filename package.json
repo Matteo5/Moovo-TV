@@ -1,7 +1,7 @@
 {
   "name": "moovo-tv",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "engines": {
     "node": ">=22.12"
@@ -38,6 +38,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3",
+    "uqr": "^0.1.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

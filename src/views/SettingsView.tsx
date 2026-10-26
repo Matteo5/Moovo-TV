@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { RefreshCw, LogOut, Download, Upload, Eye, EyeOff, Trash2, Check, Monitor, Tv, Smartphone, Wand2 } from 'lucide-react'
+import { RefreshCw, Download, Upload, Eye, EyeOff, Trash2, Check, Monitor, Tv, Smartphone, Wand2 } from 'lucide-react'
 import { useIptvStore } from '../store/useIptvStore'
 import type { DeviceModePreference } from '../types/iptv'
 import { ACCENT_ORDER, ACCENT_THEMES } from '../types/theme'
@@ -8,6 +8,7 @@ import { Button } from '../ui/Button'
 import { PlaybackSettings } from './PlaybackSettings'
 import { CategorySettings } from './CategorySettings'
 import { ParentalSettings } from './ParentalSettings'
+import { PlaylistSettings } from './PlaylistSettings'
 import { clearTrendingCache } from '../services/trendingService'
 import { nativePlatform } from '../native'
 
@@ -133,10 +134,14 @@ const SettingsView: React.FC = () => {
             <Button icon={<RefreshCw className="size-4" />} onClick={() => s.reloadSource()}>
               Recharger la source
             </Button>
-            <Button variant="ghost" icon={<LogOut className="size-4" />} onClick={() => s.resetPlaylist()}>
-              Changer de source
-            </Button>
           </div>
+        </Section>
+
+        <Section
+          title="Playlists"
+          description="Chaque abonnement connecté une fois est gardé ici : passez de l’un à l’autre sans retaper vos accès."
+        >
+          <PlaylistSettings inputClass={inputClass} onNotice={flash} />
         </Section>
 
         <Section title="Guide TV" description="Un fichier XMLTV fournit les programmes de la grille et le replay.">

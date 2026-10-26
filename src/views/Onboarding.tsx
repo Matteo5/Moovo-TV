@@ -6,6 +6,8 @@ import { DEMO_PLAYLISTS } from '../services/playlistService'
 import { generateRandomMac } from '../services/stalkerService'
 import { Wordmark } from '../ui/Brand'
 import { Button } from '../ui/Button'
+import { PlaylistTiles } from './PlaylistPicker'
+import { PairingPanel, pairingAvailable } from './PairingPanel'
 
 const SOURCES: { id: ConnectionMode; title: string; detail: string; icon: React.ReactNode }[] = [
   { id: 'xtream', title: 'Xtream Codes', detail: 'Serveur, identifiant, mot de passe', icon: <Server className="size-6" /> },
@@ -85,6 +87,22 @@ export const Onboarding: React.FC = () => {
       {/* Configuration */}
       <main className="px-[var(--gutter)] pb-16 pt-10 lg:py-[max(3.5rem,6vh)] tv:pt-[var(--gutter)]">
         <div className="mx-auto max-w-2xl">
+          {store.playlists.length > 0 && (
+            <section className="mb-12">
+              <h2 className="font-wide text-xl font-bold">Vos playlists</h2>
+              <div className="mt-5">
+                <PlaylistTiles autofocus />
+              </div>
+            </section>
+          )}
+
+          {pairingAvailable && (
+            <>
+              <PairingPanel autofocus={store.playlists.length === 0} />
+              <p className="mb-10 mt-6 text-center text-sm text-fog">ou saisissez vos accès à la télécommande</p>
+            </>
+          )}
+
           <h2 className="flex items-baseline gap-3 font-wide text-xl font-bold">
             <span className="font-mono text-sm text-accent">1</span> Type de source
           </h2>
