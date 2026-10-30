@@ -28,7 +28,7 @@ import { backupService } from '../services/backupService'
 import { localSyncService } from '../services/localSyncService'
 import { cleanMediaTitle } from '../services/tmdbService'
 import { fileStore } from '../services/fileStore'
-import { getPlaybackPrefs } from '../services/playbackPrefs'
+import { getPlaybackPrefs, IOS_INTERNAL_VLC } from '../services/playbackPrefs'
 import { hasExternalPlayers, nativePlatform, needsExternalPlayerOnIos, openInExternalPlayer, playInNativePlayer } from '../native'
 import { checkStream } from '../services/streamCheck'
 import { playlistsService, type PlaylistSource, type SavedPlaylist } from '../services/playlistsService'
@@ -915,7 +915,8 @@ export const useIptvStore = create<IptvState>((set, get) => {
       if (!streamUrl) return
 
       const title = episode ? `${item.cleanTitle} · S${episode.season} É${episode.episodeNum}` : item.cleanTitle
-      const preferred = getPlaybackPrefs().externalPlayer
+      const chosenPlayer = getPlaybackPrefs().externalPlayer
+      const preferred = chosenPlayer === IOS_INTERNAL_VLC ? 'internal' : chosenPlayer
       const resumeFrom = !fromStart && resume && resume.currentTime > 10 ? resume.currentTime : 0
 
       // Épisode : on retient la série et l'épisode suivant pour l'enchaînement automatique
@@ -926,7 +927,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
         if (ctx && ctx.episode.id === episode?.id) set({ episodeContext: { ...ctx, next } })
       })
 
-      // iPhone : lecteur VLC intégré (tous formats, pistes audio et sous-titres), reprise enregistrée à la fermeture
+      // iPhone : lecteur de l'iPhone, VLC intégré en secours (tous formats), reprise enregistrée à la fermeture
       if (nativePlatform === 'ios' && preferred === 'internal' && !options.forceInternal && !options.skipNativePlayer) {
         set({ vodDetail: null })
         // Fichier retiré chez le fournisseur : le lecteur de l'appli affiche le message clair au lieu de VLC
@@ -935,7 +936,7 @@ export const useIptvStore = create<IptvState>((set, get) => {
             get().playVod(item, { ...options, skipNativePlayer: true, forceInternal: true })
             return
           }
-          void playInNativePlayer(streamUrl, title, resumeFrom, next ? episodeLabel(next) : undefined).then((result) => {
+          void playInNativePlayer(streamUrl, title, resumeFrom, next ? episodeLabel(next) : undefined, chosenPlayer === IOS_INTERNAL_VLC ? 'vlc' : 'auto').then((result) => {
             if (!result) {
               // Appli compilée sans le lecteur natif : ancien comportement
               get().playVod(item, { ...options, skipNativePlayer: true })

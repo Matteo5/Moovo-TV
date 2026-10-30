@@ -20,6 +20,7 @@
 		A1D0C0DE2F00000100000003 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000100000004 /* MainViewController.swift */; };
 		A1D0C0DE2F00000200000003 /* VLCKitLink in Frameworks */ = {isa = PBXBuildFile; productRef = A1D0C0DE2F00000200000002 /* VLCKitLink */; };
 		A1D0C0DE2F00000200000004 /* MoovoNativePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */; };
+		A1D0C0DE2F00000200000008 /* ApplePlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000200000009 /* ApplePlayerController.swift */; };
 		A1D0C0DE2F00000200000006 /* VLCPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -38,6 +39,7 @@
 		A1D0C0DE2F00000100000002 /* NativeProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeProxy.swift; sourceTree = "<group>"; };
 		A1D0C0DE2F00000100000004 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoovoNativePlugin.swift; sourceTree = "<group>"; };
+		A1D0C0DE2F00000200000009 /* ApplePlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePlayerController.swift; sourceTree = "<group>"; };
 		A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLCPlayerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				A1D0C0DE2F00000200000009 /* ApplePlayerController.swift */,
 				A1D0C0DE2F00000200000007 /* VLCPlayerViewController.swift */,
 				A1D0C0DE2F00000200000005 /* MoovoNativePlugin.swift */,
 				A1D0C0DE2F00000100000004 /* MainViewController.swift */,
@@ -176,6 +179,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				A1D0C0DE2F00000200000008 /* ApplePlayerController.swift in Sources */,
 				A1D0C0DE2F00000200000006 /* VLCPlayerViewController.swift in Sources */,
 				A1D0C0DE2F00000200000004 /* MoovoNativePlugin.swift in Sources */,
 				A1D0C0DE2F00000100000003 /* MainViewController.swift in Sources */,

@@ -138,9 +138,13 @@ export const EXTERNAL_PLAYERS: { id: string; label: string }[] = [
   { id: 'com.newin.nplayer.pro', label: 'nPlayer' },
 ]
 
+/** iPhone : toujours le lecteur VLC inclus dans l'application, plutôt que celui de l'iPhone. */
+export const IOS_INTERNAL_VLC = 'internal-vlc'
+
 /** Lecteurs de l'iPhone, ouverts par leur schéma d'URL (pas de détection possible sans code natif). */
 export const IOS_PLAYERS: { id: string; label: string; hint?: string }[] = [
-  { id: 'internal', label: 'Lecteur Moovo TV', hint: 'Lecteur intégré basé sur VLC : tous les formats (.mkv, .avi…), pistes audio et sous-titres' },
+  { id: 'internal', label: 'Lecteur iPhone', hint: 'Commandes d’iOS, image dans l’image et AirPlay. Passe sur VLC intégré pour les formats qu’il ne lit pas (.mkv, .avi…)' },
+  { id: IOS_INTERNAL_VLC, label: 'VLC intégré', hint: 'Tous les formats, pistes audio et sous-titres, décalage du son' },
   { id: 'ios-vlc', label: 'Toujours VLC' },
   { id: 'ios-infuse', label: 'Toujours Infuse' },
 ]

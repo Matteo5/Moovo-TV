@@ -25,7 +25,8 @@ export function needsExternalPlayerOnIos(url: string): boolean {
 }
 
 /**
- * iPhone : lit un film ou un épisode dans le lecteur VLC intégré à l'application (tous formats).
+ * iPhone : lit un film ou un épisode dans le lecteur de l'iPhone, ou dans le lecteur VLC intégré si le format
+ * l'exige, si le lecteur de l'iPhone renonce ou si engine vaut 'vlc'.
  * Renvoie la position atteinte à la fermeture, ou null si le lecteur natif est absent (ancienne version de l'appli).
  * nextTitle : épisode suivant proposé en fin de lecture ; next vaut true s'il faut l'enchaîner.
  */
@@ -33,11 +34,12 @@ export async function playInNativePlayer(
   url: string,
   title: string,
   startAt: number,
-  nextTitle?: string
+  nextTitle?: string,
+  engine: 'auto' | 'vlc' = 'auto'
 ): Promise<{ position: number; duration: number; next?: boolean } | null> {
   if (nativePlatform !== 'ios') return null
   try {
-    return await MoovoNative.playVideo({ url, title, startAt, nextTitle })
+    return await MoovoNative.playVideo({ url, title, startAt, nextTitle, engine })
   } catch {
     return null
   }
@@ -75,8 +77,8 @@ interface MoovoNativePlugin {
   getDeviceInfo(): Promise<{ television: boolean; nativeVideo?: boolean; versionName?: string; versionCode?: number; model?: string; sdk?: number }>
   getInstalledPlayers(): Promise<{ packages: string[] }>
   openExternal(options: { url: string; package?: string; title?: string }): Promise<void>
-  /** iPhone : lecteur VLC intégré, résout à sa fermeture. */
-  playVideo(options: { url: string; title?: string; startAt?: number; nextTitle?: string }): Promise<{ position: number; duration: number; next?: boolean }>
+  /** iPhone : lecteur de l'iPhone avec VLC intégré en secours, résout à la fermeture. */
+  playVideo(options: { url: string; title?: string; startAt?: number; nextTitle?: string; engine?: 'auto' | 'vlc' }): Promise<{ position: number; duration: number; next?: boolean }>
   /** Android : lecteur ExoPlayer sous la WebView (voir player/nativeVideo.ts). */
   videoLoad(options: {
     url: string
