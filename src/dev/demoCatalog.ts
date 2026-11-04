@@ -118,14 +118,17 @@ function channels(): Channel[] {
   const now = Date.now()
   // Plusieurs exemplaires de chaque chaîne : des listes assez longues pour tester le défilement à la télécommande
   const all = Array.from({ length: 6 }, (_, k) => CHANNELS.map(([name, group, title]) => [k ? `${name} ${k + 1}` : name, group, title] as const)).flat()
+  // `?demoStream=<url>` : une vraie vidéo pour toutes les chaînes (tester le lecteur et la télécommande)
+  const testStream = new URLSearchParams(location.search).get('demoStream')
   return all.map(([name, group, title], i) => {
+    const stream = testStream || `https://example.invalid/live/${i}.m3u8`
     const start = new Date(now - (10 + i * 7) * 60_000)
     const stop = new Date(start.getTime() + (45 + i * 5) * 60_000)
     return {
       id: `demo_ch_${i}`,
       name,
-      streamUrl: `https://example.invalid/live/${i}.m3u8`,
-      url: `https://example.invalid/live/${i}.m3u8`,
+      streamUrl: stream,
+      url: stream,
       category: group,
       group,
       number: i + 1,

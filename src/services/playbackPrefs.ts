@@ -27,6 +27,8 @@ export interface PlaybackPrefs {
   autoProviderEpg: boolean
   /** Tri des pages Films et Séries, retenu d'une ouverture de l'application à l'autre. */
   vodSort: VodSort
+  /** Direct, commandes masquées : Haut / Bas changent de chaîne (sinon ils affichent le lecteur). */
+  arrowZap: boolean
 }
 
 const KEY = 'moovo_playback_prefs'
@@ -38,6 +40,7 @@ const DEFAULTS: PlaybackPrefs = {
   externalPlayer: 'internal',
   autoProviderEpg: true,
   vodSort: 'source',
+  arrowZap: false,
 }
 
 function read(): PlaybackPrefs {

@@ -103,7 +103,8 @@ export const ChannelDrawer: React.FC<{ current: Channel; onClose: () => void }> 
                 type="button"
                 data-channel
                 data-current={isCurrent}
-                onClick={() => setActiveChannel(c)}
+                // Premier OK : on zappe en gardant la liste ; OK sur la chaîne en cours : plein écran (TiviMate)
+                onClick={() => (isCurrent ? goBack() : setActiveChannel(c))}
                 className={`mx-3 flex h-[calc(100%-0.25rem)] w-[calc(100%-1.5rem)] items-center gap-3 rounded-xl px-3 text-left ${
                   isCurrent ? 'bg-accent-soft' : 'hover:bg-white/5 focus-visible:bg-white/8'
                 }`}

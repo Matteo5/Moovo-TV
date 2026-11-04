@@ -48,6 +48,17 @@ const GuideEmpty: React.FC = () => {
   const epgStatus = useIptvStore((s) => s.epgStatus)
   const epgUrl = useIptvStore((s) => s.epgUrl)
   const [url, setUrl] = useState(epgUrl || '')
+  const boxRef = useRef<HTMLDivElement | null>(null)
+
+  // Le chargement remplace les boutons : à son issue (erreur), la télécommande retrouve le bouton principal
+  useEffect(() => {
+    if (epgStatus === 'loading') return
+    const id = window.setTimeout(() => {
+      const active = document.activeElement
+      if (!active || active === document.body) boxRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+    }, 60)
+    return () => window.clearTimeout(id)
+  }, [epgStatus])
 
   if (epgStatus === 'loading') {
     return (
@@ -60,7 +71,7 @@ const GuideEmpty: React.FC = () => {
   }
 
   return (
-    <div className="flex h-full items-center px-[var(--gutter)]">
+    <div ref={boxRef} className="flex h-full items-center px-[var(--gutter)]">
       <div className="max-w-xl">
         <CalendarClock className="size-10 text-accent" />
         <h2 className="mt-5 font-xwide text-3xl font-extrabold tracking-tight">Le guide est vide</h2>
@@ -73,7 +84,7 @@ const GuideEmpty: React.FC = () => {
           </p>
         )}
         {xtreamCreds && (
-          <Button className="mt-7" variant="primary" icon={<Download className="size-4" />} onClick={() => loadProviderEpg()}>
+          <Button className="mt-7" variant="primary" data-autofocus icon={<Download className="size-4" />} onClick={() => loadProviderEpg()}>
             Charger le guide de mon fournisseur
           </Button>
         )}
@@ -90,7 +101,7 @@ const GuideEmpty: React.FC = () => {
             placeholder={xtreamCreds ? xtreamService.buildXmltvUrl(xtreamCreds).replace(/password=[^&]+/, 'password=…') : 'https://exemple.com/guide.xml'}
             className="h-11 flex-1 rounded-xl bg-ink-850 px-4 text-paper placeholder:text-fog ring-1 ring-white/6 focus:outline-none focus:ring-2 focus:ring-accent"
           />
-          <Button type="submit">Charger cette adresse</Button>
+          <Button type="submit" data-autofocus={!xtreamCreds || undefined}>Charger cette adresse</Button>
         </form>
       </div>
     </div>
@@ -252,6 +263,8 @@ const GuideView: React.FC = () => {
                       : 'bg-ink-850 text-mist hover:bg-ink-800'
                 }`}
                 data-reveal="start"
+                // Entrée dans le guide à la télécommande : l'émission en cours de la première chaîne affichée
+                data-autofocus={(isNow && i === firstRow) || undefined}
                 style={{
                   left: startMin * ppm + 2,
                   width: Math.max(4, (endMin - startMin) * ppm - 4),

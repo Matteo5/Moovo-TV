@@ -41,6 +41,7 @@ import { Button } from '../ui/Button'
 import { OnAirDot, ProgressLine, formatTime, programProgress } from '../ui/Program'
 import { DigitOsd } from '../app/Shell'
 import { isNativeApp } from '../native'
+import { getPlaybackPrefs } from '../services/playbackPrefs'
 
 // Délai avant masquage des commandes : plus long sur TV, où l'on navigue à la télécommande
 const HIDE_AFTER_MS = typeof document !== 'undefined' && document.documentElement.dataset.device === 'tv' ? 6500 : 4000
@@ -409,6 +410,16 @@ const PlayerScreen: React.FC = () => {
   })
   const typedChannel = digits ? channels.find((c) => c.number === parseInt(digits, 10)) : undefined
 
+  // À l'ouverture, la page dessous devient inerte et perd le focus : sans cela, le premier OK
+  // de la télécommande ne faisait rien. On le pose sur Lecture / Pause.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const active = document.activeElement
+      if (!active || active === document.body) containerRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true })
+    }, 60)
+    return () => window.clearTimeout(id)
+  }, [])
+
   useEffect(() => {
     if (multiview) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -436,18 +447,36 @@ const PlayerScreen: React.FC = () => {
       if (key === 'f' || key === 'F') return handled(), toggleFullscreen()
       if (canZap && (key === 'ChannelUp' || key === 'PageUp' || key === 'MediaTrackNext')) return handled(), playNextChannel()
       if (canZap && (key === 'ChannelDown' || key === 'PageDown' || key === 'MediaTrackPrevious')) return handled(), playPreviousChannel()
+      // Touche « chaîne précédente » des télécommandes TV : retour à la dernière chaîne regardée
+      if (canZap && key === 'LastChannel') {
+        handled()
+        const previous = useIptvStore.getState().recentlyWatched.find((c) => c.id !== channel.id)
+        if (previous) setActiveChannel(previous)
+        return
+      }
+      if (key === 'Info') return handled(), showControlsAndFocus('[data-autofocus]')
+      if (canZap && key === 'Guide') return handled(), setDrawer(true)
       if (!isLive && (key === 'MediaFastForward')) return handled(), seekBy(30)
       if (!isLive && (key === 'MediaRewind')) return handled(), seekBy(-30)
 
       if (controls) {
-        // Commandes visibles : les flèches parcourent les boutons (navigation spatiale)
+        // Commandes visibles mais aucun bouton sélectionné (après un zap ou Retour) : le premier appui
+        // sélectionne Lecture / Pause au lieu d'être perdu
+        const active = document.activeElement
+        if ((!active || active === document.body) && (key === 'Enter' || key.startsWith('Arrow'))) {
+          handled()
+          showControlsAndFocus('[data-autofocus]')
+          return
+        }
+        // Sinon les flèches parcourent les boutons (navigation spatiale)
         revealControls()
         return
       }
 
-      // Commandes masquées (comme TiviMate) : Haut / Bas changent de chaîne (la télécommande Fire TV
-      // n'a pas de touches CH+ / CH−), Gauche ouvre la liste, OK et Droite affichent les commandes.
-      if (canZap && (key === 'ArrowUp' || key === 'ArrowDown')) {
+      // Commandes masquées : Haut / Bas affichent le lecteur (Netflix, Prime Video), sauf si l'utilisateur
+      // a choisi de zapper avec (Réglages › Lecture, utile sur Fire TV sans CH+ / CH−).
+      // Gauche ouvre la liste des chaînes, OK et Droite affichent les commandes.
+      if (canZap && getPlaybackPrefs().arrowZap && (key === 'ArrowUp' || key === 'ArrowDown')) {
         handled()
         if (key === 'ArrowUp') playNextChannel()
         else playPreviousChannel()
@@ -472,7 +501,7 @@ const PlayerScreen: React.FC = () => {
     }
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
-  }, [multiview, drawer, qualityMenu, tracksMenu, controls, canZap, isLive, togglePlay, toggleFullscreen, revealControls, seekBy, playNextChannel, playPreviousChannel, showControlsAndFocus])
+  }, [multiview, drawer, qualityMenu, tracksMenu, controls, canZap, isLive, channel.id, setActiveChannel, togglePlay, toggleFullscreen, revealControls, seekBy, playNextChannel, playPreviousChannel, showControlsAndFocus])
 
   // ── Intégrations système : écran verrouillé, veille ─────────
   useEffect(() => {
@@ -763,7 +792,7 @@ const PlayerScreen: React.FC = () => {
             </PlayerButton>
           )}
 
-          <div className="ml-1 hidden items-center gap-2 md:flex">
+          <div className="ml-1 hidden items-center gap-2 md:flex tv:hidden">
             <PlayerButton label={muted ? 'Activer le son' : 'Couper le son'} onClick={() => setMuted((v) => !v)}>
               {muted || volume === 0 ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
             </PlayerButton>
@@ -861,11 +890,18 @@ const PlayerButton: React.FC<{
     onClick={onClick}
     aria-label={label}
     title={label}
-    className={`flex size-12 items-center justify-center rounded-full transition-colors ${
+    className={`group relative flex size-12 items-center justify-center rounded-full transition-colors ${
       active ? 'bg-paper text-ink-950' : 'text-paper hover:bg-white/12'
     } ${className}`}
   >
     {children}
+    {/* Télécommande : le nom du bouton sélectionné s'affiche au-dessus (Netflix, Prime Video) */}
+    <span
+      aria-hidden
+      className="pointer-events-none absolute bottom-[calc(100%+0.6rem)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-paper px-2.5 py-1 text-sm font-semibold text-ink-950 group-focus-visible:block"
+    >
+      {label}
+    </span>
   </button>
 )
 

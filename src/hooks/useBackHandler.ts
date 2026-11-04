@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { focusFirstIn } from './useSpatialNavigation'
 
 /**
  * Bouton Retour : télécommande Android TV, geste retour Android, bouton précédent du navigateur, Échap.
@@ -37,7 +38,15 @@ function restoreFocus(entry: Entry) {
   if (!el) return
   window.setTimeout(() => {
     const active = document.activeElement
-    if (el.isConnected && (!active || active === document.body)) el.focus({ preventScroll: true })
+    if (active && active !== document.body) return
+    if (el.isConnected) {
+      el.focus({ preventScroll: true })
+      return
+    }
+    // Élément disparu entre-temps (liste rechargée) : l'écran dessous peut retrouver sa position
+    // (accueil TV) ; sinon on entre dans le contenu de la page plutôt que de laisser le focus perdu
+    const lost = new Event('moovo:focus-lost', { cancelable: true })
+    if (window.dispatchEvent(lost)) focusFirstIn()
   }, 60)
 }
 

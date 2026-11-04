@@ -20,12 +20,12 @@ const SORT_ICONS: Record<VodSort, React.ReactNode> = {
   rating: <Star className="size-4" />,
 }
 
-const VodView: React.FC<{ type: 'movie' | 'series' }> = ({ type }) => {
+const VodView: React.FC<{ type: 'movie' | 'series'; initialCategory?: string }> = ({ type, initialCategory = 'ALL' }) => {
   const allItems = useIptvStore((s) => (type === 'movie' ? s.vodMovies : s.vodSeries))
   const { visible: items, hidden: lockedItems } = useVisibleVod(allItems)
   const vodResumePoints = useIptvStore((s) => s.vodResumePoints)
   const openVodDetail = useIptvStore((s) => s.openVodDetail)
-  const [category, setCategory] = useState('ALL')
+  const [category, setCategory] = useState(initialCategory)
   const [query, setQuery] = useState('')
   // Tri mémorisé (Réglages › Lecture) ; s'il est indisponible ici (pas de tendances, pas de dates d'ajout),
   // on affiche l'ordre du fournisseur sans oublier le choix enregistré

@@ -1,8 +1,10 @@
 package tv.moovo.app;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
+import android.webkit.WebView;
 
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -37,5 +39,37 @@ public class MainActivity extends BridgeActivity {
             controller.hide(WindowInsetsCompat.Type.systemBars());
             controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
+    }
+
+    /**
+     * Touches de télécommande que la WebView ne transmet pas (ou mal, selon le fabricant) :
+     * on les renvoie à l'interface sous leur nom standard (KeyboardEvent.key).
+     */
+    private static String remoteKeyName(int keyCode) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_CHANNEL_UP: return "ChannelUp";
+            case KeyEvent.KEYCODE_CHANNEL_DOWN: return "ChannelDown";
+            case KeyEvent.KEYCODE_LAST_CHANNEL: return "LastChannel";
+            case KeyEvent.KEYCODE_INFO: return "Info";
+            case KeyEvent.KEYCODE_GUIDE: return "Guide";
+            default: return null;
+        }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        String key = remoteKeyName(event.getKeyCode());
+        Bridge bridge = getBridge();
+        WebView webView = bridge != null ? bridge.getWebView() : null;
+        if (key == null || webView == null) return super.dispatchKeyEvent(event);
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            boolean repeat = event.getRepeatCount() > 0;
+            webView.evaluateJavascript(
+                "(document.activeElement||document.body).dispatchEvent(new KeyboardEvent('keydown',{key:'" + key
+                    + "',bubbles:true,cancelable:true,repeat:" + repeat + "}))",
+                null
+            );
+        }
+        return true;
     }
 }

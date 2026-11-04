@@ -119,6 +119,8 @@ function rankNeighbors(current: HTMLElement, candidates: HTMLElement[], dir: Dir
  */
 export function revealElement(el: HTMLElement, instant = false) {
   const behavior: ScrollBehavior = instant ? 'auto' : 'smooth'
+  // Écrans qui placent eux-mêmes leurs éléments (accueil TV : rangées déplacées par transform)
+  if (el.closest('[data-no-reveal]')) return
   // Blocs larges (émissions du guide) : on aligne leur début, en respectant scroll-margin
   if (el.dataset.reveal === 'start') {
     const rect = el.getBoundingClientRect()

@@ -13,7 +13,7 @@ const VARIANTS: Record<Variant, string> = {
 const SIZES: Record<Size, string> = {
   sm: 'h-9 px-3.5 text-sm gap-2 rounded-lg',
   md: 'h-11 px-5 text-[0.95rem] gap-2.5 rounded-xl',
-  lg: 'h-14 px-7 text-lg gap-3 rounded-2xl',
+  lg: 'h-14 px-7 text-lg gap-3 rounded-2xl tv:h-[2.6rem] tv:px-[1.15rem] tv:text-[0.9rem] tv:gap-[0.5rem] tv:rounded-[0.7rem]',
 }
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

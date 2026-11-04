@@ -19,11 +19,19 @@ const SearchView = lazy(() => import('../views/SearchView'))
 const SettingsView = lazy(() => import('../views/SettingsView'))
 const PlayerScreen = lazy(() => import('../player/PlayerScreen'))
 const VodDetail = lazy(() => import('../views/VodDetail'))
+// Téléviseur : accueil et catalogues « à la Netflix » (spotlight + rangées)
+const TvHome = lazy(() => import('../tv/TvHome'))
+const TvVodBrowse = lazy(() => import('../tv/TvVodBrowse'))
 
 // Vues plein écran à défilement interne (listes longues, grille horaire)
 const FULL_HEIGHT_VIEWS: CurrentView[] = ['live', 'epg']
 
-function renderView(view: CurrentView) {
+function renderView(view: CurrentView, device: DeviceMode) {
+  if (device === 'tv') {
+    if (view === 'home') return <TvHome />
+    if (view === 'movies') return <TvVodBrowse key="movies" type="movie" />
+    if (view === 'series') return <TvVodBrowse key="series" type="series" />
+  }
   switch (view) {
     case 'live':
       return <LiveView />
@@ -82,7 +90,8 @@ const RailButton: React.FC<{ item: NavItem; active: boolean; onSelect: (v: Curre
         }
       }}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex h-12 w-full items-center gap-4 rounded-xl px-[1.15rem] text-left transition-colors ${
+      // shrink-0 : le clavier à l'écran réduit la hauteur de la page, les boutons ne doivent pas s'écraser
+      className={`relative flex h-12 w-full shrink-0 items-center gap-4 rounded-xl px-[1.15rem] text-left transition-colors ${
         active ? 'text-paper bg-white/8' : 'text-fog hover:text-paper hover:bg-white/5'
       }`}
     >
@@ -117,7 +126,7 @@ const NavRail: React.FC<{ view: CurrentView; onSelect: (v: CurrentView) => void 
     }}
     className={`rail ${open ? 'rail-open' : ''} fixed inset-y-0 left-0 z-40 flex w-[var(--rail-w)] flex-col gap-1 overflow-hidden border-r border-white/5 bg-ink-950/95 px-2.5 py-6 backdrop-blur-xl transition-[width,box-shadow] duration-300 ease-[var(--ease-snap)]`}
   >
-    <div className="mb-6 flex h-12 items-center gap-1 px-[0.45rem]">
+    <div className="mb-6 flex h-12 shrink-0 items-center gap-1 px-[0.45rem]">
       <BrandMark className="h-12 shrink-0" />
       <BrandWordmark className="rail-label h-7 shrink-0 opacity-0 transition-opacity" />
     </div>
@@ -232,6 +241,19 @@ export const Shell: React.FC<{ device: DeviceMode }> = ({ device }) => {
     return () => setRootBackHandler(null)
   }, [])
 
+  // Touche « Guide » de la télécommande (relayée par l'application Android) : ouvre le guide TV
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Guide' || e.defaultPrevented) return
+      const { activeChannel: playing, setCurrentView: go } = useIptvStore.getState()
+      if (playing) return
+      e.preventDefault()
+      go('epg')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   // Programme « en cours » rafraîchi chaque minute
   useEffect(() => {
     const id = window.setInterval(refreshNowPlaying, 60_000)
@@ -245,7 +267,7 @@ export const Shell: React.FC<{ device: DeviceMode }> = ({ device }) => {
   const typedChannel = digits ? channels.find((c) => c.number === parseInt(digits, 10)) : undefined
 
   const isMobile = device === 'mobile'
-  const fullHeight = FULL_HEIGHT_VIEWS.includes(currentView)
+  const fullHeight = FULL_HEIGHT_VIEWS.includes(currentView) || (device === 'tv' && ['home', 'movies', 'series'].includes(currentView))
 
   const selectView = (view: CurrentView) => {
     setCurrentView(view)
@@ -255,11 +277,18 @@ export const Shell: React.FC<{ device: DeviceMode }> = ({ device }) => {
   // À la télécommande, on entre dans la nouvelle vue au lieu de rester dans le menu
   useEffect(() => {
     if (device !== 'tv') return
-    const id = window.setTimeout(() => {
+    // Rubrique choisie avec OK : le focus quitte le menu (qui se replie) pour la page.
+    // Une page chargée à la demande peut mettre plus d'une seconde à apparaître sur un petit boîtier :
+    // on réessaie tant qu'elle n'a rien à focaliser (2,5 s au plus).
+    let tries = 0
+    let id = 0
+    const attempt = () => {
       const active = document.activeElement
-      // Rubrique choisie avec OK : le focus quitte le menu (qui se replie) pour la page
-      if (!active || active === document.body || active.closest('.rail')) focusFirstIn(mainRef.current || document)
-    }, 250)
+      if (active && active !== document.body && !active.closest('.rail')) return
+      if (focusFirstIn(mainRef.current || document)) return
+      if (++tries < 15) id = window.setTimeout(attempt, 150)
+    }
+    id = window.setTimeout(attempt, 250)
     return () => window.clearTimeout(id)
   }, [currentView, device])
 
@@ -285,7 +314,7 @@ export const Shell: React.FC<{ device: DeviceMode }> = ({ device }) => {
         }`}
       >
         <ErrorBoundary key={currentView} area="Cette page">
-          <Suspense fallback={<ViewFallback />}>{renderView(currentView)}</Suspense>
+          <Suspense fallback={<ViewFallback />}>{renderView(currentView, device)}</Suspense>
         </ErrorBoundary>
       </main>
 

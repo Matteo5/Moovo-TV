@@ -47,6 +47,20 @@ const VodDetail: React.FC = () => {
     return () => window.clearTimeout(id)
   }, [])
 
+  // Série : « Premier épisode » n'apparaît qu'une fois les épisodes reçus. Si la télécommande est restée
+  // sur « Retour » (ou nulle part) pendant le chargement, on la place sur ce bouton dès qu'il arrive.
+  const hasSeasons = !!seasons && seasons.length > 0
+  useEffect(() => {
+    if (!hasSeasons) return
+    const id = window.setTimeout(() => {
+      const root = document.querySelector('[data-vod-detail]')
+      const active = document.activeElement as HTMLElement | null
+      const onBackButton = !!active && root?.querySelector('button') === active
+      if (!active || active === document.body || onBackButton) root?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true })
+    }, 60)
+    return () => window.clearTimeout(id)
+  }, [hasSeasons])
+
   const backdrop = details.backdrop || details.logo
 
   return (
@@ -74,8 +88,13 @@ const VodDetail: React.FC = () => {
           Retour
         </Button>
 
-        <div className="mt-[18vh] grid gap-10 md:grid-cols-[14rem_minmax(0,1fr)] lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <div className="hidden md:block">
+        {/* TV avec image de fond : mise en page Netflix, l'image suffit (pas d'affiche en double) */}
+        <div
+          className={`mt-[18vh] grid gap-10 md:grid-cols-[14rem_minmax(0,1fr)] lg:grid-cols-[16rem_minmax(0,1fr)] ${
+            details.backdrop ? 'tv:mt-[30vh] tv:grid-cols-1' : 'tv:grid-cols-[12rem_minmax(0,1fr)]'
+          }`}
+        >
+          <div className={`hidden md:block ${details.backdrop ? 'tv:hidden' : ''}`}>
             {details.logo ? (
               <img src={details.logo} alt="" className="aspect-[2/3] w-full rounded-2xl object-cover shadow-[0_2rem_4rem_-1rem_rgb(0_0_0/0.9)] ring-1 ring-white/10" />
             ) : (
@@ -111,7 +130,19 @@ const VodDetail: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div
+              className="mt-8 flex flex-wrap gap-3 tv:flex-nowrap"
+              // Bas depuis les boutons : la saison choisie, sinon la navigation géométrique sautait la rangée
+              // des saisons (trop à gauche) pour aller directement aux épisodes
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowDown' || e.defaultPrevented) return
+                const chip = document.querySelector<HTMLElement>('[data-seasons] [aria-pressed="true"]')
+                if (!chip) return
+                e.preventDefault()
+                chip.focus({ preventScroll: true })
+                chip.scrollIntoView({ block: 'center', behavior: 'smooth' })
+              }}
+            >
               {directPlayable && (
                 <>
                   <Button
@@ -205,7 +236,7 @@ const VodDetail: React.FC = () => {
             {!seasons && !episodesError && <BrandMark pulse className="mt-6 h-12" />}
             {seasons && seasons.length === 0 && <p className="mt-4 text-mist">Le fournisseur ne liste aucun épisode pour cette série.</p>}
             {seasons && seasons.length > 1 && (
-              <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1">
+              <div data-seasons className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1">
                 {seasons.map((s) => (
                   <Chip key={s.season} selected={s.season === season} count={s.episodes.length} onClick={() => setSeason(s.season)}>
                     Saison {s.season}

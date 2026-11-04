@@ -108,6 +108,14 @@ export const PlaybackSettings: React.FC = () => {
         ))}
       </Group>
 
+      <Group
+        title="Flèches Haut / Bas pendant le direct"
+        note="Les touches CH+ / CH− et la liste des chaînes (Gauche) changent toujours de chaîne."
+      >
+        <Option selected={!prefs.arrowZap} onSelect={() => setPlaybackPrefs({ arrowZap: false })} label="Afficher le lecteur" hint="Comme Netflix ou Prime Video (recommandé)" />
+        <Option selected={prefs.arrowZap} onSelect={() => setPlaybackPrefs({ arrowZap: true })} label="Changer de chaîne" hint="Pour les télécommandes sans CH+ / CH−" />
+      </Group>
+
       <Group title="Guide TV du fournisseur Xtream">
         <Option selected={prefs.autoProviderEpg} onSelect={() => setPlaybackPrefs({ autoProviderEpg: true })} label="Charger automatiquement" hint="Au démarrage, si aucun guide n’est défini" />
         <Option selected={!prefs.autoProviderEpg} onSelect={() => setPlaybackPrefs({ autoProviderEpg: false })} label="Ne pas charger" hint="Conseillé sur les appareils peu puissants" />

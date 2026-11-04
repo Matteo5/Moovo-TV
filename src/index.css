@@ -498,3 +498,89 @@ html.native-video [data-player-root] {
 html.native-video [data-player-root] > video {
   opacity: 0;
 }
+
+/* ── Accueil TV « à la Netflix » (src/tv) ───────────────────────────
+   Tout ce qui bouge passe par transform / opacity : rien à recalculer pour le processeur du boîtier. */
+.tvb-spot {
+  height: 56vh;
+  /* Le texte du bandeau change à chaque appui : la mise en page reste confinée à ce bloc */
+  contain: layout style;
+}
+.tvb-spot-big {
+  height: 72vh;
+}
+.tvb-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 78%;
+  height: 100%;
+}
+.tvb-spot-big .tvb-backdrop {
+  height: 100%;
+}
+.tvb-fade {
+  opacity: 0;
+  transition: opacity 450ms ease;
+}
+.tvb-fade.tvb-in {
+  opacity: 1;
+}
+.tvb-rows {
+  top: 56vh;
+  contain: layout style paint;
+  transition: transform 300ms var(--ease-snap);
+}
+.tvb-rows-low {
+  transform: translate3d(0, 16vh, 0);
+}
+.tvb-track {
+  transition: transform 260ms var(--ease-snap);
+}
+.tvb-track.tvb-fast {
+  transition-duration: 90ms;
+}
+.tvb-tile {
+  display: block;
+  border-radius: 0.6rem;
+  text-align: left;
+  transform-origin: center;
+  transition: transform 180ms var(--ease-snap);
+}
+/* Pas de transition sur le liseré : une ombre animée se redessine sur le processeur à chaque image */
+.tvb-tile:focus-visible,
+html[data-device="tv"] .tvb-tile:focus-visible {
+  outline: none;
+  box-shadow: none;
+  transform: scale(1.08);
+  z-index: 5;
+}
+/* Sélection : liseré blanc franc (lisible à 3 m) et traînée du logo sous la tuile, signature Moovo */
+.tvb-tile:focus-visible .tvb-frame {
+  box-shadow: 0 0 0 0.14rem var(--color-paper);
+}
+.tvb-tile:focus-visible::after {
+  content: "";
+  position: absolute;
+  right: 12%;
+  bottom: -0.45rem;
+  left: 12%;
+  height: 0.16rem;
+  border-radius: 999px;
+  background: var(--brand-gradient);
+}
+.tvb-rank {
+  color: var(--color-ink-950);
+  -webkit-text-stroke: 0.12rem rgb(170 181 216 / 0.55);
+}
+.tvb-tile:focus-visible .tvb-rank {
+  -webkit-text-stroke-color: var(--color-paper);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tvb-rows,
+  .tvb-track,
+  .tvb-tile,
+  .tvb-fade {
+    transition: none;
+  }
+}

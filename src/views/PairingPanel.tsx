@@ -63,7 +63,7 @@ export const PairingPanel: React.FC<{ className?: string; autofocus?: boolean }>
     <div
       tabIndex={0}
       data-autofocus={autofocus || undefined}
-      className={`rounded-3xl bg-ink-900 p-6 ring-1 ring-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:p-8 ${className}`}
+      className={`rounded-3xl bg-ink-900 p-6 ring-1 ring-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent tv:focus:ring-4 tv:focus:ring-accent sm:p-8 ${className}`}
     >
       <div className="flex items-center gap-3">
         <Smartphone className="size-6 text-accent" />
