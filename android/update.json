@@ -1,3 +1,6 @@
-"versionCode": 7,
-"versionName": "1.6",
-"notes": "Plusieurs playlists avec code au choix ; connexion depuis le téléphone par QR code ; code parental corrigé."
+{
+  "versionCode": 8,
+  "versionName": "1.7",
+  "apkUrl": "https://drive.google.com/file/d/12xDB7aOn_5BUNzFz7Z1jn4wCsbMYEJQ6/view?usp=drive_link",
+  "notes": "Nouvelle interface façon Netflix ; Haut / Bas pendant le direct affichent le lecteur au lieu de zapper ; touches CH+ / CH− / Info / Guide de la télécommande ; navigation plus fluide et plusieurs bugs de sélection corrigés."
+}
